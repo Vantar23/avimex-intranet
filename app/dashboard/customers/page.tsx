@@ -1,3 +1,4 @@
 export default function Page() {
-    return <p>Customers Page regreso cambiado</p>;
+    return <div><p>Customers Page regreso cambiado</p></div>
+    ;
 }
