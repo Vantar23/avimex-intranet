@@ -13,7 +13,7 @@ export default function RootLayout({
       <body className={`${montserrat.className} antialiased`}>
         {children}
         <footer className='py-10 flex justify-center items-center'>
-          Hecho con mucho amor ❤️ por David
+          esta es una prueba
         </footer>
         </body>
     </html>
