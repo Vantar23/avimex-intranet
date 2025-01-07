@@ -61,4 +61,3 @@ export async function GET() {
         headers: { 'Content-Type': 'text/html' },
     });
 }
-npm install -g pnpm
