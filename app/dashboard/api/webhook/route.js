@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { exec } from 'child_process';
 
 // Configuración del secreto (debe coincidir con el configurado en GitHub)
-const SECRET = 'mySuperSecretToken'; // Cambia esto por el secreto configurado en GitHub
+const SECRET = 'mySuperSecretToken'; // Cambia esto por el secreto configurado en GitHu
 
 // Verificar el secreto enviado por GitHub
 async function verifySecret(req) {
