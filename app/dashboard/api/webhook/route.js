@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { exec } from 'child_process';
 
 // Configuración del secreto (debe coincidir con el configurado en GitHub)
-const SECRET = 'mySuperSecretToken'; // Cambia esto por el secreto configurado en GitHu
+const SECRET = 'mySuperSecretToken'; // Cambia esto por el secreto configurado en GitHub
 
 // Verificar el secreto enviado por GitHub
 async function verifySecret(req) {
@@ -37,17 +37,18 @@ export async function POST(req) {
         const parsedBody = JSON.parse(body);
         console.log('Webhook recibido:', parsedBody);
 
-        // Ejecutar comando para actualizar el proyecto
-        exec('cd C:\\Users\\Administrador\\source\\Hook && git pull', (error, stdout, stderr) => {
+        // Ejecutar comando para hacer git pull y reiniciar la aplicación
+        exec('cd C:\\Users\\Administrador\\source\\NEXTJS-DASHBOARD && git pull && pm2 restart nextjs-dashboard', (error, stdout, stderr) => {
             if (error) {
-                console.error(`Error al actualizar: ${error.message}`);
+                console.error(`Error al ejecutar git pull o pm2 restart: ${error.message}`);
+                console.error(`Detalles del error: ${stderr}`);
                 return;
             }
-            console.log(`Salida: ${stdout}`);
-            console.error(`Errores: ${stderr}`);
+            console.log(`Git Pull Salida: ${stdout}`);
+            console.error(`Errores durante el comando: ${stderr}`);
         });
 
-        return NextResponse.json({ message: 'Proyecto actualizado correctamente' });
+        return NextResponse.json({ message: 'Proyecto actualizado y PM2 reiniciado correctamente' });
     } catch (error) {
         console.error(`Error en webhook: ${error.message}`);
         return NextResponse.json({ message: 'Error procesando el webhook' }, { status: 500 });
@@ -60,3 +61,4 @@ export async function GET() {
         headers: { 'Content-Type': 'text/html' },
     });
 }
+npm install -g pnpm
