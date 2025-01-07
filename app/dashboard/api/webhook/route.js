@@ -54,7 +54,7 @@ export async function POST(req) {
     }
 }
 
-// Manejar solicitudes GET
+// Manejar solicitudes GETTTT
 export async function GET() {
     return new NextResponse('<h1>Webhook Server</h1><p>Servidor funcionando correctamente. Ruta POST: /api/webhook.</p>', {
         headers: { 'Content-Type': 'text/html' },
