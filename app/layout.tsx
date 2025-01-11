@@ -13,7 +13,7 @@ export default function RootLayout({
       <body className={`${montserrat.className} antialiased`}>
         {children}
         <footer className='py-10 flex justify-center items-center'>
-          Contarolware S.A de C.V
+          Todos os derechos reservados para Contarolware S.A de C.V
         </footer>
         </body>
     </html>
