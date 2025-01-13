@@ -1,6 +1,33 @@
-"use client"; // Si estás usando Next.js para que funcione en el cliente
+"use client";
+
+import { useState, useEffect } from "react";
+
+// Define la interfaz Producto fuera del componente
+interface Producto {
+  ID: number;
+  DESCRIPCION: string;
+}
 
 export default function RequisitionForm() {
+  const [productos, setProductos] = useState<Producto[]>([]);
+
+  useEffect(() => {
+    async function fetchProductos() {
+      try {
+        const response = await fetch("http://localhost/backend/api/productos");
+        if (!response.ok) {
+          throw new Error("Error al obtener los productos");
+        }
+        const data = await response.json();
+        setProductos(data.Cat_Producto);
+      } catch (error) {
+        console.error("Error al cargar productos:", error);
+      }
+    }
+
+    fetchProductos();
+  }, []);
+
   return (
     <div>
       {/* Encabezado */}
@@ -50,8 +77,11 @@ export default function RequisitionForm() {
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
             >
               <option>Seleccionar...</option>
-              <option>Producto 1</option>
-              <option>Producto 2</option>
+              {productos.map((producto) => (
+                <option key={producto.ID} value={producto.ID}>
+                  {producto.DESCRIPCION}
+                </option>
+              ))}
             </select>
           </div>
         </div>
