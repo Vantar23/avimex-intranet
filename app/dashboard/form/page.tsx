@@ -14,7 +14,7 @@ export default function RequisitionForm() {
   useEffect(() => {
     async function fetchProductos() {
       try {
-        const response = await fetch("http://localhost:5000/backend/api/productos");
+        const response = await fetch("http://localhost:5003/backend/api/productos");
         if (!response.ok) {
           throw new Error("Error al obtener los productos");
         }
