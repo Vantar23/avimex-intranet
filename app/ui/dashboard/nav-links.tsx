@@ -1,8 +1,10 @@
+"use client"; // Agrega esta línea al inicio del archivo
+
 import {
   UserGroupIcon,
   HomeIcon,
   DocumentDuplicateIcon,
-  PencilSquareIcon, // Icon for the form page
+  PencilSquareIcon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
