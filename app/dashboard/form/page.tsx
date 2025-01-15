@@ -2,31 +2,23 @@
 
 import { useState, useEffect } from "react";
 
-// Define la interfaz Producto fuera del componente
+// Importa los datos desde el archivo index.js
+const catalogos = require("./path/to/index.js");
+
+// Define la interfaz Producto y Medida
 interface Producto {
   ID: number;
   DESCRIPCION: string;
 }
 
+interface Medida {
+  ID: number;
+  DESCRIPCION: string;
+}
+
 export default function RequisitionForm() {
-  const [productos, setProductos] = useState<Producto[]>([]);
-
-  useEffect(() => {
-    async function fetchProductos() {
-      try {
-        const response = await fetch("http://localhost/backend/api/Catalogos");
-        if (!response.ok) {
-          throw new Error("Error al obtener los productos");
-        }
-        const data = await response.json();
-        setProductos(data.Cat_Producto);
-      } catch (error) {
-        console.error("Error al cargar productos:", error);
-      }
-    }
-
-    fetchProductos();
-  }, []);
+  const [productos, setProductos] = useState<Producto[]>(catalogos.Cat_Producto || []);
+  const [medidas, setMedidas] = useState<Medida[]>(catalogos.Cat_Medida || []);
 
   return (
     <div>
@@ -95,12 +87,18 @@ export default function RequisitionForm() {
             >
               Unidad de Medida
             </label>
-            <input
-              type="text"
+            <select
               id="unidad"
               name="unidad"
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-            />
+            >
+              <option>Seleccionar...</option>
+              {medidas.map((medida) => (
+                <option key={medida.ID} value={medida.ID}>
+                  {medida.DESCRIPCION}
+                </option>
+              ))}
+            </select>
           </div>
           <div>
             <label
