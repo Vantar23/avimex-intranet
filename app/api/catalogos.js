@@ -17,13 +17,22 @@ const fetchCatalogos = async () => {
             console.log('Respuesta de la API recibida:', response.data);
 
             // Asigna cada sección del JSON a su respectivo array
-            catalogos.Cat_Producto = response.data.Cat_Producto.map(producto => ({
-                ID: producto.ID,
-                DESCRIPCION: producto.DESCRIPCION
+            catalogos.Cat_Producto = response.data.Cat_Producto.map(item => ({
+                ID: item.ID,
+                DESCRIPCION: item.DESCRIPCION
             })) || [];
-            catalogos.Cat_Medida = response.data.Cat_Medida || [];
-            catalogos.Cat_Marca = response.data.Cat_Marca || [];
-            catalogos.Cat_Proveedor = response.data.Cat_Proveedor || [];
+            catalogos.Cat_Medida = response.data.Cat_Medida.map(item => ({
+                ID: item.ID,
+                DESCRIPCION: item.DESCRIPCION
+            })) || [];
+            catalogos.Cat_Marca = response.data.Cat_Marca.map(item => ({
+                ID: item.ID,
+                DESCRIPCION: item.DESCRIPCION
+            })) || [];
+            catalogos.Cat_Proveedor = response.data.Cat_Proveedor.map(item => ({
+                ID: item.ID,
+                DESCRIPCION: item.DESCRIPCION
+            })) || [];
 
             console.log('Datos de los catálogos actualizados:', catalogos);
             return catalogos;
