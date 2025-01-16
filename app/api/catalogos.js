@@ -17,7 +17,10 @@ const fetchCatalogos = async () => {
             console.log('Respuesta de la API recibida:', response.data);
 
             // Asigna cada sección del JSON a su respectivo array
-            catalogos.Cat_Producto = response.data.Cat_Producto || [];
+            catalogos.Cat_Producto = response.data.Cat_Producto.map(producto => ({
+                ID: producto.ID,
+                DESCRIPCION: producto.DESCRIPCION
+            })) || [];
             catalogos.Cat_Medida = response.data.Cat_Medida || [];
             catalogos.Cat_Marca = response.data.Cat_Marca || [];
             catalogos.Cat_Proveedor = response.data.Cat_Proveedor || [];
