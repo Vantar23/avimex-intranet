@@ -14,13 +14,16 @@ export default function Requisicion() {
   const [productos, setProductos] = useState<Producto[]>([]);
 
   useEffect(() => {
-    // Cargar productos desde el objeto `catalogos`
     if (catalogos.Cat_Producto && catalogos.Cat_Producto.length > 0) {
-      setProductos(catalogos.Cat_Producto as Producto[]);
+        setProductos(catalogos.Cat_Producto.map((producto: Producto) => ({
+            ID: producto.ID,
+            DESCRIPCION: producto.DESCRIPCION,
+        })));
+        console.log("Productos cargados: ", catalogos.Cat_Producto);
     } else {
-      console.error("No se encontraron productos en el catálogo.");
+        console.error("No se encontraron productos en el catálogo.");
     }
-  }, []);
+}, []);
 
   return (
     <div>
