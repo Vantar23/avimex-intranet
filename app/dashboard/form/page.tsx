@@ -1,8 +1,27 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { catalogos } from "app/api/catalogos"; // Ajusta la ruta a tu archivo catalogos.js
+
+// Define una interfaz para tipar los productos
+interface Producto {
+  ID: number;
+  DESCRIPCION: string;
+}
 
 export default function Requisicion() {
+  // Tipamos el estado como un arreglo de `Producto`
+  const [productos, setProductos] = useState<Producto[]>([]);
+
+  useEffect(() => {
+    // Cargar productos desde el objeto `catalogos`
+    if (catalogos.Cat_Producto && catalogos.Cat_Producto.length > 0) {
+      setProductos(catalogos.Cat_Producto as Producto[]);
+    } else {
+      console.error("No se encontraron productos en el catálogo.");
+    }
+  }, []);
+
   return (
     <div>
       {/* Encabezado */}
@@ -51,102 +70,13 @@ export default function Requisicion() {
               name="producto"
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
             >
-              <option>Seleccionar...</option>
-              <option value="producto1">Producto prueba 1</option>
-              <option value="producto2">Producto 2</option>
+              <option value="">Seleccionar...</option>
+              {productos.map((producto) => (
+                <option key={producto.ID} value={producto.ID}>
+                  {producto.DESCRIPCION}
+                </option>
+              ))}
             </select>
-          </div>
-        </div>
-
-        {/* Fila 2 */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <div>
-            <label
-              htmlFor="unidad"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Unidad de Medida
-            </label>
-            <input
-              type="text"
-              id="unidad"
-              name="unidad"
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="marca"
-              className="block text-sm font-medium text-gray-700"
-            >
-              No. Catálogo o Marca
-            </label>
-            <input
-              type="text"
-              id="marca"
-              name="marca"
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="proveedor"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Proveedor
-            </label>
-            <input
-              type="text"
-              id="proveedor"
-              name="proveedor"
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-            />
-          </div>
-        </div>
-
-        {/* Fila 3 */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-          <div>
-            <label
-              htmlFor="factura"
-              className="block text-sm font-medium text-gray-700"
-            >
-              No. Factura
-            </label>
-            <input
-              type="text"
-              id="factura"
-              name="factura"
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="cotizacion"
-              className="block text-sm font-medium text-gray-700"
-            >
-              No. Cotización
-            </label>
-            <input
-              type="text"
-              id="cotizacion"
-              name="cotizacion"
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-            />
-          </div>
-          <div>
-            <label
-              htmlFor="observaciones"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Observaciones
-            </label>
-            <textarea
-              id="observaciones"
-              name="observaciones"
-              rows={2}
-              className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-            ></textarea>
           </div>
         </div>
 
