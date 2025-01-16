@@ -52,7 +52,7 @@ export default function Requisicion() {
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
             >
               <option>Seleccionar...</option>
-              <option value="producto1">Producto 1</option>
+              <option value="producto1">Producto prueba 1</option>
               <option value="producto2">Producto 2</option>
             </select>
           </div>
