@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import axios from "axios";
+import { catalogos } from "app/api/catalogos"; // Ajusta la ruta a tu archivo catalogos.js
 
 // Define una interfaz para tipar los productos
 interface Producto {
@@ -9,59 +9,25 @@ interface Producto {
   DESCRIPCION: string;
 }
 
-// Define una interfaz para todos los catálogos
-interface Catalogos {
-  Cat_Producto: Producto[];
-  Cat_Medida: Producto[];
-  Cat_Marca: Producto[];
-  Cat_Proveedor: Producto[];
-}
-
 export default function Requisicion() {
   // Tipamos el estado como un arreglo de `Producto`
   const [productos, setProductos] = useState<Producto[]>([]);
 
   useEffect(() => {
-    const fetchCatalogos = async () => {
-      try {
-        console.log("Iniciando solicitud para obtener catálogos...");
-        const response = await axios.get("http://localhost/backend/api/Catalogos");
-
-        if (response && response.data) {
-          const catalogos: Catalogos = {
-            Cat_Producto: response.data.Cat_Producto.map((item: Producto) => ({
-              ID: item.ID,
-              DESCRIPCION: item.DESCRIPCION,
-            })),
-            Cat_Medida: response.data.Cat_Medida.map((item: Producto) => ({
-              ID: item.ID,
-              DESCRIPCION: item.DESCRIPCION,
-            })),
-            Cat_Marca: response.data.Cat_Marca.map((item: Producto) => ({
-              ID: item.ID,
-              DESCRIPCION: item.DESCRIPCION,
-            })),
-            Cat_Proveedor: response.data.Cat_Proveedor.map((item: Producto) => ({
-              ID: item.ID,
-              DESCRIPCION: item.DESCRIPCION,
-            })),
-          };
-
-          setProductos(catalogos.Cat_Producto);
-          console.log("Productos cargados: ", catalogos.Cat_Producto);
-        } else {
-          console.error("La respuesta de la API está vacía o malformada.");
-        }
-      } catch (error) {
-        console.error("Error al obtener los datos del catálogo: ", error);
-      }
-    };
-
-    fetchCatalogos();
-  }, []);
+    if (catalogos.Cat_Producto && catalogos.Cat_Producto.length > 0) {
+        setProductos(catalogos.Cat_Producto.map((producto: Producto) => ({
+            ID: producto.ID,
+            DESCRIPCION: producto.DESCRIPCION,
+        })));
+        console.log("Productos cargados: ", catalogos.Cat_Producto);
+    } else {
+        console.error("No se encontraron productos en el catálogo.");
+    }
+}, []);
 
   return (
     <div>
+      
       <h1 className="text-2xl font-bold text-gray-800 mb-4">Requisición</h1>
 
       <form className="bg-white rounded p-6 space-y-4">
