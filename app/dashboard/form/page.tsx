@@ -24,7 +24,7 @@ export default function Requisicion() {
 
   return (
     <div>
-      {/* Encabezado */}
+      
       <h1 className="text-2xl font-bold text-gray-800 mb-4">Requisición</h1>
 
       <form className="bg-white rounded p-6 space-y-4">
