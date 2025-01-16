@@ -1,5 +1,6 @@
 const axios = require('axios');
 
+// Inicialización del objeto catalogos
 let catalogos = {
     Cat_Producto: [],
     Cat_Medida: [],
@@ -12,20 +13,20 @@ const fetchCatalogos = async () => {
     try {
         const response = await axios.get('http://localhost/backend/api/Catalogos');
 
-        // Asigna cada sección del JSON a su respectivo array
+        // Asignar cada sección del JSON a su respectivo array
         catalogos.Cat_Producto = response.data.Cat_Producto || [];
         catalogos.Cat_Medida = response.data.Cat_Medida || [];
         catalogos.Cat_Marca = response.data.Cat_Marca || [];
         catalogos.Cat_Proveedor = response.data.Cat_Proveedor || [];
 
-        console.log('Datos de los catálogos actualizados.');
+        console.log('Datos de los catálogos actualizados:', catalogos);
     } catch (error) {
         console.error('Error al obtener los datos del catálogo:', error.message);
     }
 };
 
-// Ejecutar la extracción de datos
-fetchCatalogos();
-
-// Exportar los datos para usarlos en otros módulos
-module.exports = catalogos;
+// Exportar el objeto `catalogos` y la función `fetchCatalogos`
+module.exports = {
+    catalogos,
+    fetchCatalogos,
+};

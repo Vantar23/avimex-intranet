@@ -2,32 +2,7 @@
 
 import { useState, useEffect } from "react";
 
-// Define la interfaz Producto fuera del componente
-interface Producto {
-  ID: number;
-  DESCRIPCION: string;
-}
-
-export default function RequisitionForm() {
-  const [productos, setProductos] = useState<Producto[]>([]);
-
-  useEffect(() => {
-    async function fetchProductos() {
-      try {
-        const response = await fetch("http://localhost/backend/api/Catalogos");
-        if (!response.ok) {
-          throw new Error("Error al obtener los productos");
-        }
-        const data = await response.json();
-        setProductos(data.Cat_Producto);
-      } catch (error) {
-        console.error("Error al cargar productos:", error);
-      }
-    }
-
-    fetchProductos();
-  }, []);
-
+export default function Requisicion() {
   return (
     <div>
       {/* Encabezado */}
@@ -77,11 +52,8 @@ export default function RequisitionForm() {
               className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
             >
               <option>Seleccionar...</option>
-              {productos.map((producto) => (
-                <option key={producto.ID} value={producto.ID}>
-                  {producto.DESCRIPCION}
-                </option>
-              ))}
+              <option value="producto1">Producto 1</option>
+              <option value="producto2">Producto 2</option>
             </select>
           </div>
         </div>
