@@ -155,7 +155,7 @@ export default function Requisicion() {
           </select>
         </div>
         <div>
-          <label className="block font-semibold mb-1">Unidad de Medida</label>
+          <label className="block font-semibold mb-1">Unidad de Medida a</label>
           <select
             className="border rounded w-full p-2"
             value={medidaIdSeleccionada}
