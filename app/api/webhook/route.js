@@ -39,7 +39,7 @@ export async function POST(req) {
 
         // Ejecutar los comandos para hacer git pull, build y reiniciar PM2
         exec(
-            'cd C:\\Users\\Administrador\\source\\NEXTJS-DASHBOARD && git pull && pnpm install && pnpm run build && pm2 restart nextjs-prod',
+            'cd C:\\Users\\Administrador\\source\\NEXTJS-DASHBOARD && git pull && npm i && pnpm install && pnpm run build && pm2 restart nextjs-prod',
             (error, stdout, stderr) => {
                 if (error) {
                     console.error(`Error al ejecutar comandos: ${error.message}`);

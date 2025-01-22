@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+export const config = { ssr: false };
 
 export default function Requisicion() {
   const [archivo1, setArchivo1] = useState<File | null>(null);
@@ -10,20 +11,39 @@ export default function Requisicion() {
   const [codigo, setCodigo] = useState("");
   const [cantidad, setCantidad] = useState("");
   const [productoSeleccionado, setProductoSeleccionado] = useState("");
+  const [medidaIdSeleccionada, setMedidaIdSeleccionada] = useState("");
+  const [marcaIdSeleccionada, setMarcaIdSeleccionada] = useState("");
+  const [noFactura, setNoFactura] = useState("");
+  const [noCotizacion, setNoCotizacion] = useState("");
+  const [observaciones, setObservaciones] = useState("");
   const [proveedorSeleccionado, setProveedorSeleccionado] = useState("");
   const [jsonGenerado, setJsonGenerado] = useState<string | null>(null);
 
   // Opciones manuales
   const productos = [
-    { ID: "1", DESCRIPCION: "Producto A" },
-    { ID: "2", DESCRIPCION: "Producto B" },
-    { ID: "3", DESCRIPCION: "Producto C" },
+    { ID: "1", DESCRIPCION: "Despachador de Toallas" },
+    { ID: "2", DESCRIPCION: "Dispensador de Jabón" },
+    { ID: "3", DESCRIPCION: "Abrazadera sin Fin 1 1/4\"" },
   ];
 
   const proveedores = [
-    { ID: "1", DESCRIPCION: "Proveedor X" },
-    { ID: "2", DESCRIPCION: "Proveedor Y" },
-    { ID: "3", DESCRIPCION: "Proveedor Z" },
+    { ID: "1", DESCRIPCION: "AELENEVA México" },
+    { ID: "2", DESCRIPCION: "Talos Electronics" },
+    { ID: "3", DESCRIPCION: "Proveedor Genérico" },
+  ];
+
+  const medidas = [
+    { ID: "1", DESCRIPCION: "Unidad" },
+    { ID: "2", DESCRIPCION: "Pieza" },
+    { ID: "3", DESCRIPCION: "Caja" },
+    { ID: "4", DESCRIPCION: "Metro" },
+  ];
+
+  const marcas = [
+    { ID: "1", DESCRIPCION: "Marca A" },
+    { ID: "2", DESCRIPCION: "Marca B" },
+    { ID: "3", DESCRIPCION: "Marca C" },
+    { ID: "4", DESCRIPCION: "Genérico" },
   ];
 
   // Manejo del archivo seleccionado
@@ -54,9 +74,11 @@ export default function Requisicion() {
       !codigo ||
       !cantidad ||
       !productoSeleccionado ||
+      !medidaIdSeleccionada ||
+      !marcaIdSeleccionada ||
       !proveedorSeleccionado
     ) {
-      alert("Por favor, completa todos los campos antes de enviar.");
+      alert("Por favor, completa todos los campos obligatorios antes de enviar.");
       return;
     }
 
@@ -68,6 +90,11 @@ export default function Requisicion() {
       codigo,
       cantidad,
       productoId: productoSeleccionado,
+      medidaId: medidaIdSeleccionada,
+      marcaId: marcaIdSeleccionada,
+      noFactura,
+      noCotizacion,
+      observaciones,
       proveedorId: proveedorSeleccionado,
     };
 
@@ -126,6 +153,62 @@ export default function Requisicion() {
               </option>
             ))}
           </select>
+        </div>
+        <div>
+          <label className="block font-semibold mb-1">Unidad de Medida</label>
+          <select
+            className="border rounded w-full p-2"
+            value={medidaIdSeleccionada}
+            onChange={(e) => setMedidaIdSeleccionada(e.target.value)}
+          >
+            <option value="">Selecciona una medida</option>
+            {medidas.map((medida) => (
+              <option key={medida.ID} value={medida.ID}>
+                {medida.DESCRIPCION}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block font-semibold mb-1">No. Catálogo o Marca</label>
+          <select
+            className="border rounded w-full p-2"
+            value={marcaIdSeleccionada}
+            onChange={(e) => setMarcaIdSeleccionada(e.target.value)}
+          >
+            <option value="">Selecciona una marca</option>
+            {marcas.map((marca) => (
+              <option key={marca.ID} value={marca.ID}>
+                {marca.DESCRIPCION}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block font-semibold mb-1">No. Factura</label>
+          <input
+            type="text"
+            className="border rounded w-full p-2"
+            value={noFactura}
+            onChange={(e) => setNoFactura(e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="block font-semibold mb-1">No. Cotización</label>
+          <input
+            type="text"
+            className="border rounded w-full p-2"
+            value={noCotizacion}
+            onChange={(e) => setNoCotizacion(e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="block font-semibold mb-1">Observaciones</label>
+          <textarea
+            className="border rounded w-full p-2"
+            value={observaciones}
+            onChange={(e) => setObservaciones(e.target.value)}
+          />
         </div>
         <div>
           <label className="block font-semibold mb-1">Proveedor</label>
