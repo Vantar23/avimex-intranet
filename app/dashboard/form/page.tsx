@@ -19,7 +19,6 @@ export default function Requisicion() {
   const [proveedorSeleccionado, setProveedorSeleccionado] = useState("");
   const [jsonGenerado, setJsonGenerado] = useState<string | null>(null);
 
-  // Opciones manuales
   const productos = [
     { ID: "1", DESCRIPCION: "Despachador de Toallas" },
     { ID: "2", DESCRIPCION: "Dispensador de Jabón" },
@@ -46,26 +45,22 @@ export default function Requisicion() {
     { ID: "4", DESCRIPCION: "Genérico" },
   ];
 
-  // Manejo del archivo seleccionado
   const manejarArchivo = (e: React.ChangeEvent<HTMLInputElement>, archivoSetter: any, base64Setter: any) => {
     if (e.target.files && e.target.files.length > 0) {
       const archivoSeleccionado = e.target.files[0];
       archivoSetter(archivoSeleccionado);
 
-      // Leer archivo y convertirlo a base64
       const lector = new FileReader();
       lector.onload = () => {
         if (lector.result) {
           base64Setter(lector.result.toString());
-          console.log("Archivo en Base64:", lector.result);
         }
       };
       lector.readAsDataURL(archivoSeleccionado);
     }
   };
 
-  // Manejar el envío del formulario
-  const manejarEnvio = (e: React.FormEvent<HTMLFormElement>) => {
+  const manejarEnvio = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (
@@ -83,9 +78,9 @@ export default function Requisicion() {
     }
 
     const data = {
-      archivo1: archivo1Base64, // Primer archivo en formato Base64
+      archivo1: archivo1Base64,
       nombreArchivo1: archivo1.name,
-      archivo2: archivo2Base64, // Segundo archivo en formato Base64
+      archivo2: archivo2Base64,
       nombreArchivo2: archivo2.name,
       codigo,
       cantidad,
@@ -99,8 +94,30 @@ export default function Requisicion() {
     };
 
     const jsonString = JSON.stringify(data, null, 2);
-    setJsonGenerado(jsonString); // Guardar el JSON generado para mostrarlo en pantalla
-    console.log("Datos generados (JSON):", jsonString);
+    setJsonGenerado(jsonString);
+
+    try {
+      const response = await fetch("http://localhost/backend/api/compras", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        alert("Datos enviados exitosamente.");
+        console.log("Respuesta de la API:", result);
+      } else {
+        const errorText = await response.text();
+        alert("Error al enviar los datos. Revisa la consola para más información.");
+        console.error("Error:", errorText);
+      }
+    } catch (error) {
+      console.error("Error en la solicitud:", error);
+      alert("Hubo un error al intentar enviar los datos.");
+    }
   };
 
   return (
@@ -155,7 +172,7 @@ export default function Requisicion() {
           </select>
         </div>
         <div>
-          <label className="block font-semibold mb-1">Unidad de Medida a</label>
+          <label className="block font-semibold mb-1">Unidad de Medida</label>
           <select
             className="border rounded w-full p-2"
             value={medidaIdSeleccionada}
@@ -229,7 +246,7 @@ export default function Requisicion() {
           type="submit"
           className="bg-blue-500 text-white py-2 px-4 rounded"
         >
-          Generar JSON
+          Generar y Enviar JSON
         </button>
       </form>
       {jsonGenerado && (
