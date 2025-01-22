@@ -17,7 +17,6 @@ export default function Requisicion() {
   const [noCotizacion, setNoCotizacion] = useState("");
   const [observaciones, setObservaciones] = useState("");
   const [proveedorSeleccionado, setProveedorSeleccionado] = useState("");
-  const [jsonGenerado, setJsonGenerado] = useState<string | null>(null);
 
   const productos = [
     { ID: "1", DESCRIPCION: "Despachador de Toallas" },
@@ -94,7 +93,7 @@ export default function Requisicion() {
     };
 
     const jsonString = JSON.stringify(data, null, 2);
-    setJsonGenerado(jsonString);
+    console.log("JSON generado:", jsonString);
 
     try {
       const response = await fetch("http://localhost/backend/api/compras", {
@@ -124,6 +123,7 @@ export default function Requisicion() {
     <div>
       <h1 className="text-2xl font-bold text-gray-800 mb-4">Requisición</h1>
       <form className="bg-white rounded p-6 space-y-4" onSubmit={manejarEnvio}>
+        {/* Campos del formulario */}
         <div>
           <label className="block font-semibold mb-1">Archivo 1</label>
           <input
@@ -249,12 +249,6 @@ export default function Requisicion() {
           Generar y Enviar JSON
         </button>
       </form>
-      {jsonGenerado && (
-        <div className="mt-6 p-4 bg-gray-100 rounded">
-          <h2 className="text-lg font-semibold mb-2">JSON Generado:</h2>
-          <pre className="bg-white p-4 rounded shadow">{jsonGenerado}</pre>
-        </div>
-      )}
     </div>
   );
 }
