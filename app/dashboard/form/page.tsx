@@ -67,10 +67,8 @@ export default function Requisicion() {
     }
 
     const formData = new FormData();
-    formData.append("archivo1", archivo1);  // Archivo 1
-    formData.append("archivo2", archivo2);  // Archivo 2
-    formData.append("nombreArchivo1", archivo1?.name || "");  // Nombre de archivo 1
-    formData.append("nombreArchivo2", archivo2?.name || "");  // Nombre de archivo 2
+    formData.append("archivo1", archivo1); // Archivo 1
+    formData.append("archivo2", archivo2); // Archivo 2
     formData.append("codigo", codigo);
     formData.append("cantidad", cantidad);
     formData.append("productoId", productoSeleccionado);
@@ -80,6 +78,12 @@ export default function Requisicion() {
     formData.append("noCotizacion", noCotizacion);
     formData.append("observaciones", observaciones);
     formData.append("proveedorId", proveedorSeleccionado);
+
+    // Depuración de datos
+    console.log("Datos enviados a la API:");
+    formData.forEach((value, key) => {
+      console.log(`${key}: ${value}`);
+    });
 
     try {
       const response = await fetch("http://localhost/backend/api/compras", {
@@ -106,46 +110,25 @@ export default function Requisicion() {
     <div>
       <h1 className="text-2xl font-bold text-gray-800 mb-4">Requisición</h1>
       <form className="bg-white rounded p-6 space-y-4" onSubmit={manejarEnvio}>
-        {/* Campos del formulario */}
         <div>
           <label className="block font-semibold mb-1">Archivo 1</label>
-          <input
-            type="file"
-            onChange={(e) => manejarArchivo(e, setArchivo1)}
-          />
+          <input type="file" onChange={(e) => manejarArchivo(e, setArchivo1)} />
         </div>
         <div>
           <label className="block font-semibold mb-1">Archivo 2</label>
-          <input
-            type="file"
-            onChange={(e) => manejarArchivo(e, setArchivo2)}
-          />
+          <input type="file" onChange={(e) => manejarArchivo(e, setArchivo2)} />
         </div>
         <div>
           <label className="block font-semibold mb-1">Código</label>
-          <input
-            type="text"
-            className="border rounded w-full p-2"
-            value={codigo}
-            onChange={(e) => setCodigo(e.target.value)}
-          />
+          <input type="text" className="border rounded w-full p-2" value={codigo} onChange={(e) => setCodigo(e.target.value)} />
         </div>
         <div>
           <label className="block font-semibold mb-1">Cantidad</label>
-          <input
-            type="text"
-            className="border rounded w-full p-2"
-            value={cantidad}
-            onChange={(e) => setCantidad(e.target.value)}
-          />
+          <input type="text" className="border rounded w-full p-2" value={cantidad} onChange={(e) => setCantidad(e.target.value)} />
         </div>
         <div>
           <label className="block font-semibold mb-1">Producto</label>
-          <select
-            className="border rounded w-full p-2"
-            value={productoSeleccionado}
-            onChange={(e) => setProductoSeleccionado(e.target.value)}
-          >
+          <select className="border rounded w-full p-2" value={productoSeleccionado} onChange={(e) => setProductoSeleccionado(e.target.value)}>
             <option value="">Selecciona un producto</option>
             {productos.map((producto) => (
               <option key={producto.ID} value={producto.ID}>
@@ -156,11 +139,7 @@ export default function Requisicion() {
         </div>
         <div>
           <label className="block font-semibold mb-1">Unidad de Medida</label>
-          <select
-            className="border rounded w-full p-2"
-            value={medidaIdSeleccionada}
-            onChange={(e) => setMedidaIdSeleccionada(e.target.value)}
-          >
+          <select className="border rounded w-full p-2" value={medidaIdSeleccionada} onChange={(e) => setMedidaIdSeleccionada(e.target.value)}>
             <option value="">Selecciona una medida</option>
             {medidas.map((medida) => (
               <option key={medida.ID} value={medida.ID}>
@@ -171,11 +150,7 @@ export default function Requisicion() {
         </div>
         <div>
           <label className="block font-semibold mb-1">No. Catálogo o Marca</label>
-          <select
-            className="border rounded w-full p-2"
-            value={marcaIdSeleccionada}
-            onChange={(e) => setMarcaIdSeleccionada(e.target.value)}
-          >
+          <select className="border rounded w-full p-2" value={marcaIdSeleccionada} onChange={(e) => setMarcaIdSeleccionada(e.target.value)}>
             <option value="">Selecciona una marca</option>
             {marcas.map((marca) => (
               <option key={marca.ID} value={marca.ID}>
@@ -186,38 +161,19 @@ export default function Requisicion() {
         </div>
         <div>
           <label className="block font-semibold mb-1">No. Factura</label>
-          <input
-            type="text"
-            className="border rounded w-full p-2"
-            value={noFactura}
-            onChange={(e) => setNoFactura(e.target.value)}
-          />
+          <input type="text" className="border rounded w-full p-2" value={noFactura} onChange={(e) => setNoFactura(e.target.value)} />
         </div>
         <div>
           <label className="block font-semibold mb-1">No. Cotización</label>
-          <input
-            type="text"
-            className="border rounded w-full p-2"
-            value={noCotizacion}
-            onChange={(e) => setNoCotizacion(e.target.value)}
-          />
+          <input type="text" className="border rounded w-full p-2" value={noCotizacion} onChange={(e) => setNoCotizacion(e.target.value)} />
         </div>
         <div>
           <label className="block font-semibold mb-1">Observaciones</label>
-          <input
-            type="text"
-            className="border rounded w-full p-2"
-            value={observaciones}
-            onChange={(e) => setObservaciones(e.target.value)}
-          />
+          <input type="text" className="border rounded w-full p-2" value={observaciones} onChange={(e) => setObservaciones(e.target.value)} />
         </div>
         <div>
           <label className="block font-semibold mb-1">Proveedor</label>
-          <select
-            className="border rounded w-full p-2"
-            value={proveedorSeleccionado}
-            onChange={(e) => setProveedorSeleccionado(e.target.value)}
-          >
+          <select className="border rounded w-full p-2" value={proveedorSeleccionado} onChange={(e) => setProveedorSeleccionado(e.target.value)}>
             <option value="">Selecciona un proveedor</option>
             {proveedores.map((proveedor) => (
               <option key={proveedor.ID} value={proveedor.ID}>
@@ -227,10 +183,7 @@ export default function Requisicion() {
           </select>
         </div>
         <div>
-          <button
-            type="submit"
-            className="bg-blue-500 text-white rounded px-6 py-2 w-full"
-          >
+          <button type="submit" className="bg-blue-500 text-white rounded px-6 py-2 w-full">
             Enviar
           </button>
         </div>
