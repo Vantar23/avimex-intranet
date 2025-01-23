@@ -62,6 +62,9 @@ const handler = (req, res) => {
         res.status(500).json({ error: "Hubo un error al procesar la solicitud." });
       }
     });
+  } else if (req.method === "GET") {
+    // Si la solicitud es GET, respondemos con un mensaje
+    res.status(200).send("¡Bienvenido a la sección de compras! Aquí podrás gestionar tus archivos y datos de compras.");
   } else {
     res.status(405).json({ error: "Método no permitido" });
   }
