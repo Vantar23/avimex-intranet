@@ -88,7 +88,8 @@ export default function Requisicion() {
     formData.append("proveedorId", proveedorSeleccionado);
 
     try {
-      const response = await fetch("http://localhost/backend/api/compras", {
+      // URL actualizada
+      const response = await fetch("http://37.27.133.117:3000/backend/api/compras", {
         method: "POST",
         body: formData,
       });
@@ -244,8 +245,8 @@ export default function Requisicion() {
             ))}
           </select>
         </div>
-        <div>
-          <button type="submit" className="bg-blue-500 text-white rounded px-6 py-2 w-full">
+        <div className="mt-4">
+          <button type="submit" className="bg-blue-500 text-white rounded px-4 py-2">
             Enviar
           </button>
         </div>
