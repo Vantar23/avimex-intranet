@@ -31,7 +31,7 @@ export async function POST(req) {
         // Validar el secreto
         const body = await verifySecret(req);
         if (!body) {
-            return NextResponse.json({ message: 'Firma no válida' }, { status: 403 });
+            return NextResponse.json({ message: 'Firma no válida' }, { status: 403 }); //prueba
         }
 
         const parsedBody = JSON.parse(body);
