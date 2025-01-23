@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
-import { exec } from 'child_process';
+import { spawn } from 'child_process';
 
 // Configuración del secreto (debe coincidir con el configurado en GitHub)
 const SECRET = 'mySuperSecretToken'; // Cambia esto por el secreto configurado en GitHub
 
 // Verificar el secreto enviado por GitHub
 async function verifySecret(req) {
-    const signature = req.headers.get('x-hub-signature-256'); //prueba
+    const signature = req.headers.get('x-hub-signature-256'); // Firma enviada por GitHub
     const body = await req.text();
 
     if (!signature) {
@@ -37,19 +37,13 @@ export async function POST(req) {
         const parsedBody = JSON.parse(body);
         console.log('Webhook recibido:', parsedBody);
 
-        // Ejecutar los comandos para hacer git pull, build y reiniciar PM2 (ocultar salida)
-        exec(
-            'cd C:\\Users\\Administrador\\source\\NEXTJS-DASHBOARD && git pull && npm i && pnpm install && pnpm run build && pm2 restart nextjs-prod > NUL 2>&1', // Redirige la salida a NUL
-            (error, stdout, stderr) => {
-                if (error) {
-                    console.error(`Error al ejecutar comandos: ${error.message}`);
-                    console.error(`Detalles del error: ${stderr}`);
-                    return;
-                }
-                // Aquí no mostramos la salida estándar ni de error
-                console.log(`Comando ejecutado exitosamente`);
-            }
-        );
+        // Ejecutar los comandos usando spawn y ocultar la ventana de la terminal
+        const process = spawn('cmd', ['/c', 'cd C:\\Users\\Administrador\\source\\NEXTJS-DASHBOARD && git pull && npm i && pnpm install && pnpm run build && pm2 restart nextjs-prod'], {
+            detached: true, // Ejecuta el proceso de manera independiente
+            stdio: 'ignore', // Ignora la salida para que no se muestre en la consola
+        });
+
+        process.unref(); // Permite que el proceso se ejecute en segundo plano
 
         return NextResponse.json({ message: 'Proyecto actualizado, construido y reiniciado correctamente con PM2' });
     } catch (error) {
