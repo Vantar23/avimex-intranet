@@ -6,8 +6,6 @@ export const config = { ssr: false };
 export default function Requisicion() {
   const [archivo1, setArchivo1] = useState<File | null>(null);
   const [archivo2, setArchivo2] = useState<File | null>(null);
-  const [archivo1Base64, setArchivo1Base64] = useState<string | null>(null);
-  const [archivo2Base64, setArchivo2Base64] = useState<string | null>(null);
   const [codigo, setCodigo] = useState("");
   const [cantidad, setCantidad] = useState("");
   const [productoSeleccionado, setProductoSeleccionado] = useState("");
@@ -44,18 +42,10 @@ export default function Requisicion() {
     { ID: "4", DESCRIPCION: "Genérico" },
   ];
 
-  const manejarArchivo = (e: React.ChangeEvent<HTMLInputElement>, archivoSetter: any, base64Setter: any) => {
+  const manejarArchivo = (e: React.ChangeEvent<HTMLInputElement>, archivoSetter: any) => {
     if (e.target.files && e.target.files.length > 0) {
       const archivoSeleccionado = e.target.files[0];
       archivoSetter(archivoSeleccionado);
-
-      const lector = new FileReader();
-      lector.onload = () => {
-        if (lector.result) {
-          base64Setter(lector.result.toString());
-        }
-      };
-      lector.readAsDataURL(archivoSeleccionado);
     }
   };
 
@@ -76,32 +66,25 @@ export default function Requisicion() {
       return;
     }
 
-    const data = {
-      archivo1: archivo1Base64,
-      nombreArchivo1: archivo1.name,
-      archivo2: archivo2Base64,
-      nombreArchivo2: archivo2.name,
-      codigo,
-      cantidad,
-      productoId: productoSeleccionado,
-      medidaId: medidaIdSeleccionada,
-      marcaId: marcaIdSeleccionada,
-      noFactura,
-      noCotizacion,
-      observaciones,
-      proveedorId: proveedorSeleccionado,
-    };
-
-    const jsonString = JSON.stringify(data, null, 2);
-    console.log("JSON generado:", jsonString);
+    const formData = new FormData();
+    formData.append("archivo1", archivo1);  // Archivo 1
+    formData.append("archivo2", archivo2);  // Archivo 2
+    formData.append("nombreArchivo1", archivo1?.name || "");  // Nombre de archivo 1
+    formData.append("nombreArchivo2", archivo2?.name || "");  // Nombre de archivo 2
+    formData.append("codigo", codigo);
+    formData.append("cantidad", cantidad);
+    formData.append("productoId", productoSeleccionado);
+    formData.append("medidaId", medidaIdSeleccionada);
+    formData.append("marcaId", marcaIdSeleccionada);
+    formData.append("noFactura", noFactura);
+    formData.append("noCotizacion", noCotizacion);
+    formData.append("observaciones", observaciones);
+    formData.append("proveedorId", proveedorSeleccionado);
 
     try {
       const response = await fetch("http://localhost/backend/api/compras", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
+        body: formData,
       });
 
       if (response.ok) {
@@ -128,14 +111,14 @@ export default function Requisicion() {
           <label className="block font-semibold mb-1">Archivo 1</label>
           <input
             type="file"
-            onChange={(e) => manejarArchivo(e, setArchivo1, setArchivo1Base64)}
+            onChange={(e) => manejarArchivo(e, setArchivo1)}
           />
         </div>
         <div>
           <label className="block font-semibold mb-1">Archivo 2</label>
           <input
             type="file"
-            onChange={(e) => manejarArchivo(e, setArchivo2, setArchivo2Base64)}
+            onChange={(e) => manejarArchivo(e, setArchivo2)}
           />
         </div>
         <div>
@@ -243,13 +226,14 @@ export default function Requisicion() {
             ))}
           </select>
         </div>
-
-        <button
-          type="submit"
-          className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700"
-        >
-          Enviar Requisición
-        </button>
+        <div>
+          <button
+            type="submit"
+            className="bg-blue-500 text-white rounded px-6 py-2 w-full"
+          >
+            Enviar
+          </button>
+        </div>
       </form>
     </div>
   );
