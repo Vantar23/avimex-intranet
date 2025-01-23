@@ -37,17 +37,17 @@ export async function POST(req) {
         const parsedBody = JSON.parse(body);
         console.log('Webhook recibido:', parsedBody);
 
-        // Ejecutar los comandos para hacer git pull, build y reiniciar PM2
+        // Ejecutar los comandos para hacer git pull, build y reiniciar PM2 (ocultar salida)
         exec(
-            'cd C:\\Users\\Administrador\\source\\NEXTJS-DASHBOARD && git pull && npm i && pnpm install && pnpm run build && pm2 restart nextjs-prod',
+            'cd C:\\Users\\Administrador\\source\\NEXTJS-DASHBOARD && git pull && npm i && pnpm install && pnpm run build && pm2 restart nextjs-prod > NUL 2>&1', // Redirige la salida a NUL
             (error, stdout, stderr) => {
                 if (error) {
                     console.error(`Error al ejecutar comandos: ${error.message}`);
                     console.error(`Detalles del error: ${stderr}`);
                     return;
                 }
-                console.log(`Comando ejecutado exitosamente:\n${stdout}`);
-                console.error(`Errores durante el comando:\n${stderr}`);
+                // Aquí no mostramos la salida estándar ni de error
+                console.log(`Comando ejecutado exitosamente`);
             }
         );
 
