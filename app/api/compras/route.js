@@ -34,7 +34,7 @@ const handler = (req, res) => {
         const observaciones = formData.get("observaciones");
         const proveedorId = formData.get("proveedorId");
 
-        // Aseguramos que la carpeta 'uploads' exista, si no la creamos
+        // Aseguramos que la carpeta 'uploads' exista, si no la creamos compras
         const uploadsDir = path.join(process.cwd(), "uploads");
         if (!fs.existsSync(uploadsDir)) {
           fs.mkdirSync(uploadsDir);  // Crea la carpeta si no existe
