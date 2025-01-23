@@ -26,7 +26,7 @@ async function verifySecret(req) {
 }
 
 // Manejar solicitudes POST
-export async function POST(req) {
+export async function POST(req) { //Pureba
     try {
         // Validar el secreto
         const body = await verifySecret(req);
