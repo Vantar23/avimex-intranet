@@ -221,7 +221,8 @@ export default function Requisicion() {
         </div>
         <div>
           <label className="block font-semibold mb-1">Observaciones</label>
-          <textarea
+          <input
+            type="text"
             className="border rounded w-full p-2"
             value={observaciones}
             onChange={(e) => setObservaciones(e.target.value)}
@@ -242,11 +243,12 @@ export default function Requisicion() {
             ))}
           </select>
         </div>
+
         <button
           type="submit"
-          className="bg-blue-500 text-white py-2 px-4 rounded"
+          className="bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-700"
         >
-          Generar y Enviar JSON
+          Enviar Requisición
         </button>
       </form>
     </div>
