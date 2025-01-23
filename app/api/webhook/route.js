@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { spawn } from 'child_process';
+import { exec } from 'child_process';
 
 // Configuración del secreto (debe coincidir con el configurado en GitHub)
 const SECRET = 'mySuperSecretToken'; // Cambia esto por el secreto configurado en GitHub
@@ -26,7 +26,7 @@ async function verifySecret(req) {
 }
 
 // Manejar solicitudes POST
-export async function POST(req) { //Pureba
+export async function POST(req) {
     try {
         // Validar el secreto
         const body = await verifySecret(req);
@@ -37,13 +37,19 @@ export async function POST(req) { //Pureba
         const parsedBody = JSON.parse(body);
         console.log('Webhook recibido:', parsedBody);
 
-        // Ejecutar los comandos usando spawn y ocultar la ventana de la terminal
-        const process = spawn('cmd', ['/c', 'cd C:\\Users\\Administrador\\source\\NEXTJS-DASHBOARD && git pull && npm i && pnpm install && pnpm run build && pm2 restart nextjs-prod'], {
-            detached: true, // Ejecuta el proceso de manera independiente
-            stdio: 'ignore', // Ignora la salida para que no se muestre en la consola
-        });
-
-        process.unref(); // Permite que el proceso se ejecute en segundo plano
+        // Ejecutar los comandos usando 'start /min' para minimizar la ventana
+        exec(
+            'start /min cmd /c "cd C:\\Users\\Administrador\\source\\NEXTJS-DASHBOARD && git pull && npm i && pnpm install && pnpm run build && pm2 restart nextjs-prod"',
+            (error, stdout, stderr) => {
+                if (error) {
+                    console.error(`Error al ejecutar comandos: ${error.message}`);
+                    console.error(`Detalles del error: ${stderr}`);
+                    return;
+                }
+                // Aquí no mostramos nada en la terminal
+                console.log(`Comando ejecutado exitosamente`);
+            }
+        );
 
         return NextResponse.json({ message: 'Proyecto actualizado, construido y reiniciado correctamente con PM2' });
     } catch (error) {
