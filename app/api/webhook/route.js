@@ -6,7 +6,7 @@ const SECRET = 'mySuperSecretToken'; // Cambia esto por el secreto configurado e
 
 // Verificar el secreto enviado por GitHub
 async function verifySecret(req) {
-    const signature = req.headers.get('x-hub-signature-256'); // Firma enviada por GitHub
+    const signature = req.headers.get('x-hub-signature-256');
     const body = await req.text();
 
     if (!signature) {
