@@ -22,19 +22,15 @@ export default function FormularioPrueba() {
     const formData = new FormData();
     formData.append("noFactura", noFactura);
 
+    // Convertimos FormData a Blob para calcular el Content-Length
+    const formDataBlob = new Blob(Array.from(formData.entries()), {
+      type: "multipart/form-data",
+    });
+
     try {
       const response = await fetch("http://localhost/backend/api/compras", {
         method: "POST",
-        body: formData,
-        headers: {
-          "Postman-Token": "abc123", // Simulado, cámbialo si usas uno real
-          "Content-Type": "multipart/form-data",
-          Host: "localhost",
-          "User-Agent": "PostmanRuntime/7.43.0",
-          Accept: "*/*",
-          "Accept-Encoding": "gzip, deflate, br",
-          Connection: "keep-alive",
-        },
+        body: formData, // Enviar datos con FormData
       });
 
       if (response.ok) {
