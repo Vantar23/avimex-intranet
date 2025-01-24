@@ -26,11 +26,6 @@ export default function FormularioPrueba() {
       const response = await fetch("http://localhost/backend/api/compras", {
         method: "POST",
         body: formData, // Enviar datos con FormData
-        headers: {
-          "Accept": "*/*",
-          "User-Agent": "PostmanRuntime/7.43.0",
-          "Connection": "keep-alive",
-        }, // Content-Type se manejará automáticamente por el navegador
       });
 
       if (response.ok) {
