@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { writeFile } from "fs/promises";
+import { writeFile, mkdir } from "fs/promises";
 import { v4 as uuidv4 } from "uuid";
 import path from "path";
 
@@ -30,7 +30,10 @@ export async function POST(request) {
     const nombreArchivo = `${uuidv4()}_${archivo.name}`;
 
     // Define la ruta donde se guardará el archivo
-    const rutaArchivo = path.join(process.cwd(), "public/uploads", nombreArchivo);
+    const rutaCarpeta = path.join(process.cwd(), "public/uploads");
+    await mkdir(rutaCarpeta, { recursive: true }); // Asegura que la carpeta exista
+
+    const rutaArchivo = path.join(rutaCarpeta, nombreArchivo);
 
     // Guarda el archivo en el sistema
     await writeFile(rutaArchivo, buffer);
