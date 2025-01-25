@@ -23,7 +23,7 @@ export default function FormularioPrueba() {
     formData.append("noFactura", noFactura);
 
     try {
-      const response = await fetch("http://localhost/backend/api/compras", {
+      const response = await fetch("http://mylocalapi.local:3000/dashboard/form", {
         method: "POST",
         body: formData, // Enviar datos con FormData
       });
