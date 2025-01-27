@@ -29,7 +29,7 @@ export default function FormularioCompleto() {
   // Manejador para cambios en la selección de archivos
   const manejarCambioArchivo = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
-      setArchivos(Array.from(e.target.files)); // Guardar múltiples archivos
+      setArchivos(Array.from(e.target.files)); // Guardar múltiples archivos fer
       console.log("Archivos seleccionados:", Array.from(e.target.files).map((file) => file.name));
     }
   };
