@@ -7,14 +7,17 @@ export default function FormularioCompleto() {
     noFactura: "",
     noCotizacion: "",
     cantidad: "",
-    productId: "",
+    productoId: "",
     medidaId: "",
     marcaId: "",
+    codigo: "",
     observaciones: "",
     proveedorId: "",
   });
+
   const [archivos, setArchivos] = useState<File[]>([]);
   const [mensaje, setMensaje] = useState("");
+  const [loading, setLoading] = useState(false);
 
   // Manejador para cambios en los campos de texto
   const manejarCambioTexto = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -33,14 +36,30 @@ export default function FormularioCompleto() {
 
   // Validación del formulario antes del envío
   const validarFormulario = () => {
-    if (!formulario.noFactura) {
-      alert("El campo 'No. Factura' es obligatorio.");
+    const camposRequeridos = [
+      "noFactura",
+      "noCotizacion",
+      "cantidad",
+      "productoId",
+      "medidaId",
+      "marcaId",
+      "codigo",
+      "observaciones",
+      "proveedorId",
+    ];
+
+    for (const campo of camposRequeridos) {
+      if (!formulario[campo as keyof typeof formulario]) {
+        alert(`El campo '${campo}' es obligatorio.`);
+        return false;
+      }
+    }
+
+    if (archivos.length < 2) {
+      alert("Debes seleccionar al menos dos archivos (archivo1 y archivo2).");
       return false;
     }
-    if (archivos.length === 0) {
-      alert("Debes seleccionar al menos un archivo.");
-      return false;
-    }
+
     return true;
   };
 
@@ -50,12 +69,13 @@ export default function FormularioCompleto() {
 
     if (!validarFormulario()) return;
 
+    setLoading(true);
+
     const formData = new FormData();
 
-    // Agregar archivos al FormData
-    archivos.forEach((archivo, index) => {
-      formData.append(`archivo${index + 1}`, archivo); // archivo1, archivo2, ...
-    });
+    // Agregar los dos primeros archivos al FormData como archivo1 y archivo2
+    formData.append("archivo1", archivos[0]);
+    formData.append("archivo2", archivos[1]);
 
     // Agregar los campos del formulario al FormData
     Object.entries(formulario).forEach(([key, value]) => {
@@ -81,6 +101,8 @@ export default function FormularioCompleto() {
     } catch (error) {
       console.error("Error al enviar los datos:", error);
       setMensaje("Hubo un problema al enviar los datos.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -90,9 +112,10 @@ export default function FormularioCompleto() {
       noFactura: "",
       noCotizacion: "",
       cantidad: "",
-      productId: "",
+      productoId: "",
       medidaId: "",
       marcaId: "",
+      codigo: "",
       observaciones: "",
       proveedorId: "",
     });
@@ -106,13 +129,14 @@ export default function FormularioCompleto() {
         {/* Campos dinámicos */}
         {[
           { label: "No. Factura", name: "noFactura", type: "text", required: true },
-          { label: "No. Cotización", name: "noCotizacion", type: "text" },
-          { label: "Cantidad", name: "cantidad", type: "number" },
-          { label: "Product ID", name: "productId", type: "text" },
-          { label: "Medida ID", name: "medidaId", type: "text" },
-          { label: "Marca ID", name: "marcaId", type: "text" },
-          { label: "Observaciones", name: "observaciones", type: "text" },
-          { label: "Proveedor ID", name: "proveedorId", type: "text" },
+          { label: "No. Cotización", name: "noCotizacion", type: "text", required: true },
+          { label: "Cantidad", name: "cantidad", type: "number", required: true },
+          { label: "Código", name: "codigo", type: "text", required: true },
+          { label: "Producto ID", name: "productoId", type: "text", required: true },
+          { label: "Medida ID", name: "medidaId", type: "text", required: true },
+          { label: "Marca ID", name: "marcaId", type: "text", required: true },
+          { label: "Observaciones", name: "observaciones", type: "text", required: true },
+          { label: "Proveedor ID", name: "proveedorId", type: "text", required: true },
         ].map(({ label, name, type, required }) => (
           <div key={name}>
             <label className="block font-semibold mb-1">{label}</label>
@@ -122,14 +146,14 @@ export default function FormularioCompleto() {
               className="border rounded w-full p-2"
               value={formulario[name as keyof typeof formulario]}
               onChange={manejarCambioTexto}
-              required={required || false}
+              required={required}
             />
           </div>
         ))}
 
         {/* Campo para archivos */}
         <div>
-          <label className="block font-semibold mb-1">Archivos</label>
+          <label className="block font-semibold mb-1">Archivos (archivo1 y archivo2)</label>
           <input
             type="file"
             className="border rounded w-full p-2"
@@ -143,8 +167,9 @@ export default function FormularioCompleto() {
         <button
           type="submit"
           className="bg-blue-500 text-white w-full rounded px-4 py-2 hover:bg-blue-600"
+          disabled={loading}
         >
-          Enviar
+          {loading ? "Enviando..." : "Enviar"}
         </button>
       </form>
 
