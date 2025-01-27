@@ -23,7 +23,7 @@ export default function FormularioPrueba() {
     formData.append("noFactura", noFactura);
 
     try {
-      const response = await fetch("http://37.27.133.117:5003/backend/api/compras", {
+      const response = await fetch("http://37.27.133.117:3000/backend/api/compras", {
         method: "POST",
         body: formData, // Enviar datos con FormData
       });
