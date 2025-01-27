@@ -4,11 +4,19 @@ import { useState } from "react";
 
 export default function FormularioPrueba() {
   const [noFactura, setNoFactura] = useState("");
+  const [archivo, setArchivo] = useState<File | null>(null);
   const [mensaje, setMensaje] = useState("");
 
   const manejarCambioTexto = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNoFactura(e.target.value);
     console.log("No factura actualizado:", e.target.value);
+  };
+
+  const manejarCambioArchivo = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setArchivo(e.target.files[0]);
+      console.log("Archivo seleccionado:", e.target.files[0].name);
+    }
   };
 
   const manejarEnvio = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -19,13 +27,19 @@ export default function FormularioPrueba() {
       return;
     }
 
+    if (!archivo) {
+      alert("Por favor, selecciona un archivo antes de enviar.");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("noFactura", noFactura);
+    formData.append("archivo1", archivo); // Enviar archivo con nombre 'archivo1'
 
     try {
       const response = await fetch("http://37.27.133.117/backend/api/compras", {
         method: "POST",
-        body: formData, // Enviar datos con FormData
+        body: formData,
       });
 
       if (response.ok) {
@@ -33,6 +47,7 @@ export default function FormularioPrueba() {
         setMensaje("Datos enviados exitosamente: " + data.message);
         console.log("Respuesta del servidor:", data);
         setNoFactura(""); // Limpiar el campo noFactura
+        setArchivo(null); // Limpiar el archivo seleccionado
       } else {
         const errorData = await response.json();
         setMensaje("Error: " + errorData.error);
@@ -55,6 +70,15 @@ export default function FormularioPrueba() {
             className="border rounded w-full p-2"
             value={noFactura}
             onChange={manejarCambioTexto}
+            required
+          />
+        </div>
+        <div>
+          <label className="block font-semibold mb-1">Archivo</label>
+          <input
+            type="file"
+            className="border rounded w-full p-2"
+            onChange={manejarCambioArchivo}
             required
           />
         </div>
