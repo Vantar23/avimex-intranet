@@ -12,9 +12,6 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${montserrat.className} antialiased`}>
         {children}
-        <footer className='py-10 flex justify-center items-center'>
-          Todos los detechos reservados para ControlWare S.A. de C.V.
-        </footer>
         </body>
     </html>
   );

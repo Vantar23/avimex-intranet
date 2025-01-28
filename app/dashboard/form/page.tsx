@@ -21,11 +21,8 @@ export default function FormularioCompleto() {
   const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Manejador para cambios en los campos de texto o números s
   const manejarCambioTexto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
-
-    // Convertir a número si el tipo lo requiere
     const parsedValue =
       type === "number" ? (name === "cantidad" ? parseFloat(value) : parseInt(value)) : value;
 
@@ -33,7 +30,6 @@ export default function FormularioCompleto() {
     console.log(`${name} actualizado:`, parsedValue);
   };
 
-  // Manejador para cambios en la selección de archivos
   const manejarCambioArchivo = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setArchivos(Array.from(e.target.files)); // Guardar múltiples archivos
@@ -41,15 +37,15 @@ export default function FormularioCompleto() {
     }
   };
 
-  // Manejador para la selección de producto
-  const manejarSeleccionProducto = (producto: { id: number; nombre: string } | null) => {
-    if (producto) {
-      setFormulario((prev) => ({ ...prev, productoId: producto.id }));
-      console.log("Producto seleccionado:", producto);
-    }
+  const manejarSeleccionCombo = (field: keyof typeof formulario) => {
+    return (option: { id: number; nombre: string } | null) => {
+      if (option) {
+        setFormulario((prev) => ({ ...prev, [field]: option.id }));
+        console.log(`${field} seleccionado:`, option);
+      }
+    };
   };
 
-  // Validación del formulario antes del envío
   const validarFormulario = () => {
     const camposRequeridos = [
       "noFactura",
@@ -78,7 +74,6 @@ export default function FormularioCompleto() {
     return true;
   };
 
-  // Manejador para el envío del formulario
   const manejarEnvio = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -88,11 +83,9 @@ export default function FormularioCompleto() {
 
     const formData = new FormData();
 
-    // Agregar los dos primeros archivos al FormData como archivo1 y archivo2
     formData.append("archivo1", archivos[0]);
     formData.append("archivo2", archivos[1]);
 
-    // Agregar los campos del formulario al FormData
     Object.entries(formulario).forEach(([key, value]) => {
       formData.append(key, String(value));
     });
@@ -107,7 +100,7 @@ export default function FormularioCompleto() {
         const data = await response.json();
         setMensaje(`Datos enviados exitosamente: ${data.message}`);
         console.log("Respuesta del servidor:", data);
-        reiniciarFormulario(); // Limpiar el formulario después del envío exitoso
+        reiniciarFormulario();
       } else {
         const errorData = await response.json();
         setMensaje(`Error: ${errorData.error}`);
@@ -121,7 +114,6 @@ export default function FormularioCompleto() {
     }
   };
 
-  // Reiniciar los campos del formulario
   const reiniciarFormulario = () => {
     setFormulario({
       noFactura: "",
@@ -138,19 +130,18 @@ export default function FormularioCompleto() {
   };
 
   return (
-    <div className="max-w-xl mx-auto p-6 bg-gray-100 rounded shadow-md">
+    <div className="max-w-4xl mx-auto p-6 bg-gray-100 rounded shadow-md">
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Formulario de Compras</h1>
-      <form onSubmit={manejarEnvio} className="space-y-4">
-        {/* Campos dinámicos */}
-        {[ 
+      <form
+        onSubmit={manejarEnvio}
+        className="grid grid-cols-1 md:grid-cols-2 gap-4"
+      >
+        {[
           { label: "No. Factura", name: "noFactura", type: "text" },
           { label: "No. Cotización", name: "noCotizacion", type: "text" },
           { label: "Cantidad", name: "cantidad", type: "number" },
           { label: "Código", name: "codigo", type: "text" },
-          { label: "Medida ID", name: "medidaId", type: "number" },
-          { label: "Marca ID", name: "marcaId", type: "number" },
           { label: "Observaciones", name: "observaciones", type: "text" },
-          { label: "Proveedor ID", name: "proveedorId", type: "number" },
         ].map(({ label, name, type }) => (
           <div key={name}>
             <label className="block font-semibold mb-1">{label}</label>
@@ -165,18 +156,45 @@ export default function FormularioCompleto() {
           </div>
         ))}
 
-        {/* Campo para Producto ID con ComboComponent */}
+        {/* Combo Components */}
         <div>
           <label className="block font-semibold mb-1">Producto</label>
           <ComboComponent
-            localData={data.productos} // Usar datos locales
+            localData={data.productos}
             filterKey="nombre"
-            onOptionSelect={manejarSeleccionProducto}
+            onOptionSelect={manejarSeleccionCombo("productoId")}
+          />
+        </div>
+
+        <div>
+          <label className="block font-semibold mb-1">Proveedor</label>
+          <ComboComponent
+            localData={data.proveedores}
+            filterKey="nombre"
+            onOptionSelect={manejarSeleccionCombo("proveedorId")}
+          />
+        </div>
+
+        <div>
+          <label className="block font-semibold mb-1">Marca</label>
+          <ComboComponent
+            localData={data.marcas}
+            filterKey="nombre"
+            onOptionSelect={manejarSeleccionCombo("marcaId")}
+          />
+        </div>
+
+        <div>
+          <label className="block font-semibold mb-1">Medida</label>
+          <ComboComponent
+            localData={data.medidas}
+            filterKey="nombre"
+            onOptionSelect={manejarSeleccionCombo("medidaId")}
           />
         </div>
 
         {/* Campo para archivos */}
-        <div>
+        <div className="col-span-1 md:col-span-2">
           <label className="block font-semibold mb-1">Archivos (archivo1 y archivo2)</label>
           <input
             type="file"
@@ -187,20 +205,18 @@ export default function FormularioCompleto() {
           />
         </div>
 
-        {/* Botón de envío */}
-        <button
-          type="submit"
-          className="bg-blue-500 text-white w-full rounded px-4 py-2 hover:bg-blue-600"
-          disabled={loading}
-        >
-          {loading ? "Enviando..." : "Enviar"}
-        </button>
+        <div className="col-span-1 md:col-span-2">
+          <button
+            type="submit"
+            className="bg-blue-500 text-white w-full rounded px-4 py-2 hover:bg-blue-600"
+            disabled={loading}
+          >
+            {loading ? "Enviando..." : "Enviar"}
+          </button>
+        </div>
       </form>
 
-      {/* Mensaje de respuesta */}
-      {mensaje && (
-        <p className="mt-4 text-center text-lg font-medium text-green-600">{mensaje}</p>
-      )}
+      {mensaje && <p className="mt-4 text-center text-lg font-medium text-green-600">{mensaje}</p>}
     </div>
   );
 }
