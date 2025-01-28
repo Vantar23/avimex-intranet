@@ -6,24 +6,29 @@ export default function FormularioCompleto() {
   const [formulario, setFormulario] = useState({
     noFactura: "",
     noCotizacion: "",
-    cantidad: "",
-    productoId: "",
-    medidaId: "",
-    marcaId: "",
+    cantidad: 0, // decimal
+    productoId: 0, // int
+    medidaId: 0, // int
+    marcaId: 0, // int
     codigo: "",
     observaciones: "",
-    proveedorId: "",
+    proveedorId: 0, // int
   });
 
   const [archivos, setArchivos] = useState<File[]>([]);
   const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Manejador para cambios en los campos de texto
+  // Manejador para cambios en los campos de texto o números
   const manejarCambioTexto = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormulario((prev) => ({ ...prev, [name]: value }));
-    console.log(`${name} actualizado:`, value);
+    const { name, value, type } = e.target;
+
+    // Convertir a número si el tipo lo requiere
+    const parsedValue =
+      type === "number" ? (name === "cantidad" ? parseFloat(value) : parseInt(value)) : value;
+
+    setFormulario((prev) => ({ ...prev, [name]: parsedValue }));
+    console.log(`${name} actualizado:`, parsedValue);
   };
 
   // Manejador para cambios en la selección de archivos
@@ -79,7 +84,7 @@ export default function FormularioCompleto() {
 
     // Agregar los campos del formulario al FormData
     Object.entries(formulario).forEach(([key, value]) => {
-      formData.append(key, value);
+      formData.append(key, String(value));
     });
 
     try {
@@ -111,13 +116,13 @@ export default function FormularioCompleto() {
     setFormulario({
       noFactura: "",
       noCotizacion: "",
-      cantidad: "",
-      productoId: "",
-      medidaId: "",
-      marcaId: "",
+      cantidad: 0,
+      productoId: 0,
+      medidaId: 0,
+      marcaId: 0,
       codigo: "",
       observaciones: "",
-      proveedorId: "",
+      proveedorId: 0,
     });
     setArchivos([]);
   };
@@ -128,16 +133,16 @@ export default function FormularioCompleto() {
       <form onSubmit={manejarEnvio} className="space-y-4">
         {/* Campos dinámicos */}
         {[
-          { label: "No. Factura", name: "noFactura", type: "text", required: true },
-          { label: "No. Cotización", name: "noCotizacion", type: "text", required: true },
-          { label: "Cantidad", name: "cantidad", type: "number", required: true },
-          { label: "Código", name: "codigo", type: "text", required: true },
-          { label: "Producto ID", name: "productoId", type: "text", required: true },
-          { label: "Medida ID", name: "medidaId", type: "text", required: true },
-          { label: "Marca ID", name: "marcaId", type: "text", required: true },
-          { label: "Observaciones", name: "observaciones", type: "text", required: true },
-          { label: "Proveedor ID", name: "proveedorId", type: "text", required: true },
-        ].map(({ label, name, type, required }) => (
+          { label: "No. Factura", name: "noFactura", type: "text" },
+          { label: "No. Cotización", name: "noCotizacion", type: "text" },
+          { label: "Cantidad", name: "cantidad", type: "number" },
+          { label: "Código", name: "codigo", type: "text" },
+          { label: "Producto ID", name: "productoId", type: "number" },
+          { label: "Medida ID", name: "medidaId", type: "number" },
+          { label: "Marca ID", name: "marcaId", type: "number" },
+          { label: "Observaciones", name: "observaciones", type: "text" },
+          { label: "Proveedor ID", name: "proveedorId", type: "number" },
+        ].map(({ label, name, type }) => (
           <div key={name}>
             <label className="block font-semibold mb-1">{label}</label>
             <input
@@ -146,7 +151,7 @@ export default function FormularioCompleto() {
               className="border rounded w-full p-2"
               value={formulario[name as keyof typeof formulario]}
               onChange={manejarCambioTexto}
-              required={required}
+              required
             />
           </div>
         ))}
