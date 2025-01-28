@@ -21,7 +21,7 @@ export default function FormularioCompleto() {
   const [mensaje, setMensaje] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Manejador para cambios en los campos de texto o números
+  // Manejador para cambios en los campos de texto o números s
   const manejarCambioTexto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
 
