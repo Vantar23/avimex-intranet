@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import ComboComponent from "@/components/combo";
+import data from "./data.json"; // Importar datos locales
 
 export default function FormularioCompleto() {
   const [formulario, setFormulario] = useState({
@@ -36,6 +38,14 @@ export default function FormularioCompleto() {
     if (e.target.files) {
       setArchivos(Array.from(e.target.files)); // Guardar múltiples archivos
       console.log("Archivos seleccionados:", Array.from(e.target.files).map((file) => file.name));
+    }
+  };
+
+  // Manejador para la selección de producto
+  const manejarSeleccionProducto = (producto: { id: number; nombre: string } | null) => {
+    if (producto) {
+      setFormulario((prev) => ({ ...prev, productoId: producto.id }));
+      console.log("Producto seleccionado:", producto);
     }
   };
 
@@ -132,12 +142,11 @@ export default function FormularioCompleto() {
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Formulario de Compras</h1>
       <form onSubmit={manejarEnvio} className="space-y-4">
         {/* Campos dinámicos */}
-        {[
+        {[ 
           { label: "No. Factura", name: "noFactura", type: "text" },
           { label: "No. Cotización", name: "noCotizacion", type: "text" },
           { label: "Cantidad", name: "cantidad", type: "number" },
           { label: "Código", name: "codigo", type: "text" },
-          { label: "Producto ID", name: "productoId", type: "number" },
           { label: "Medida ID", name: "medidaId", type: "number" },
           { label: "Marca ID", name: "marcaId", type: "number" },
           { label: "Observaciones", name: "observaciones", type: "text" },
@@ -155,6 +164,16 @@ export default function FormularioCompleto() {
             />
           </div>
         ))}
+
+        {/* Campo para Producto ID con ComboComponent */}
+        <div>
+          <label className="block font-semibold mb-1">Producto</label>
+          <ComboComponent
+            localData={data.productos} // Usar datos locales
+            filterKey="nombre"
+            onOptionSelect={manejarSeleccionProducto}
+          />
+        </div>
 
         {/* Campo para archivos */}
         <div>

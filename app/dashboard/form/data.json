@@ -1,0 +1,18 @@
+{
+    "productos": [
+      { "id": 21, "nombre": "Comida" },
+      { "id": 22, "nombre": "Ropa" },
+      { "id": 23, "nombre": "Tecnología" }
+    ],
+    "categorias": [
+      { "id": 1, "nombre": "Electrónica" },
+      { "id": 2, "nombre": "Hogar" },
+      { "id": 3, "nombre": "Deportes" }
+    ],
+    "marcas": [
+      { "id": 101, "nombre": "Marca A" },
+      { "id": 102, "nombre": "Marca B" },
+      { "id": 103, "nombre": "Marca C" }
+    ]
+  }
+  
