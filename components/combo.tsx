@@ -1,70 +1,80 @@
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 
-interface Option {
-  id: number;
-  nombre: string;
-}
+type ComboInputProps = {
+  apiUrl: string;
+  propertyName: string;
+  onSelectionChange?: (selection: { [key: string]: number | null }) => void;
+  className?: string;
+};
 
-interface ComboComponentProps {
-  apiUrl?: string; // URL de la API para cargar datos
-  localData?: Option[]; // Datos locales como alternativa a la API
-  filterKey: keyof Option; // La clave por la cual se filtrarán y mostrarán los datos
-  onOptionSelect: (option: Option | null) => void; // Callback para manejar la selección
-}
+type Option = {
+  ID: number;
+  DESCRIPCION: string;
+};
 
-const ComboComponent: React.FC<ComboComponentProps> = ({
-  apiUrl,
-  localData,
-  filterKey,
-  onOptionSelect,
-}) => {
-  const [data, setData] = useState<Option[]>([]);
-  const [filteredData, setFilteredData] = useState<Option[]>([]);
-  const [selectedOption, setSelectedOption] = useState<Option | null>(null);
+const ComboInput: React.FC<ComboInputProps> = ({ apiUrl, propertyName, onSelectionChange, className }) => {
+  const [options, setOptions] = useState<Option[]>([]);
+  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        if (apiUrl) {
-          const response = await fetch(apiUrl);
-          const result: { productos: Option[]; categorias: Option[]; marcas: Option[] } = await response.json();
-          setData(result.productos); // Cambia `productos` según la propiedad deseada
-          setFilteredData(result.productos);
-        } else if (localData) {
-          setData(localData);
-          setFilteredData(localData);
+        setIsLoading(true);
+        const response = await axios.get(apiUrl);
+
+        if (response.status === 200 && response.data && Array.isArray(response.data[propertyName])) {
+          setOptions(response.data[propertyName] as Option[]);
+        } else {
+          console.error(`Invalid API response format. Expected an array in ${propertyName}.`);
         }
       } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching data from API:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchData();
-  }, [apiUrl, localData]);
+  }, [apiUrl, propertyName]);
 
-  const handleSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedValue = event.target.value;
-    const option = data.find((item) => item[filterKey] === selectedValue) || null;
-    setSelectedOption(option);
-    onOptionSelect(option);
+  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedValue = parseInt(event.target.value, 10);
+    setSelectedId(selectedValue);
+
+    if (onSelectionChange) {
+      onSelectionChange({ [propertyName]: selectedValue });
+    }
   };
 
   return (
-    <select
-      value={selectedOption ? String(selectedOption[filterKey]) : ""}
-      onChange={handleSelect}
-      className="w-full p-2 border rounded-md"
-    >
-      <option value="" disabled>
-        Seleccione una opción
-      </option>
-      {filteredData.map((item) => (
-        <option key={item.id} value={String(item[filterKey])}>
-          {item[filterKey]}
-        </option>
-      ))}
-    </select>
+    <div className={`w-full max-w-sm ${className || ""}`}>
+      <select
+        id="api-input"
+        value={selectedId || ""}
+        onChange={handleChange}
+        className="border rounded w-full p-2"
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <option value="" disabled>
+            Cargando opciones...
+          </option>
+        ) : (
+          <option value="" disabled>
+            Ninguno seleccionado
+          </option>
+        )}
+        {!isLoading &&
+          options.map((option) => (
+            <option key={option.ID} value={option.ID}>
+              {option.DESCRIPCION}
+            </option>
+          ))}
+      </select>
+    </div>
   );
 };
 
-export default ComboComponent;
+export default ComboInput;
