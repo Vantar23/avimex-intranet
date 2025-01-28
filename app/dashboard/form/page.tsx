@@ -71,48 +71,36 @@ export default function FormularioCompleto() {
   // Manejador para el envío del formulario
   const manejarEnvio = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-  
+
     if (!validarFormulario()) return;
-  
+
     setLoading(true);
-    setMensaje(""); // Limpiar cualquier mensaje previo
-  
+
     const formData = new FormData();
-  
+
     // Agregar los dos primeros archivos al FormData como archivo1 y archivo2
     formData.append("archivo1", archivos[0]);
     formData.append("archivo2", archivos[1]);
-  
+
     // Agregar los campos del formulario al FormData
     Object.entries(formulario).forEach(([key, value]) => {
       formData.append(key, String(value));
     });
-  
+
     try {
       const response = await fetch("http://37.27.133.117/backend/api/compras", {
         method: "POST",
         body: formData,
       });
-  
+
       if (response.ok) {
         const data = await response.json();
         setMensaje(`Datos enviados exitosamente: ${data.message}`);
         console.log("Respuesta del servidor:", data);
         reiniciarFormulario(); // Limpiar el formulario después del envío exitoso
-      } else if (response.status === 400) {
-        const errorData = await response.json();
-        if (errorData.errors) {
-          const errorMessages = Object.entries(errorData.errors)
-            .map(([field, messages]) => `${field}: ${messages.join(", ")}`)
-            .join("\n");
-          setMensaje(`Errores de validación:\n${errorMessages}`);
-        } else {
-          setMensaje(`Error: ${errorData.title || "Ocurrió un error."}`);
-        }
-        console.error("Error en el servidor:", errorData);
       } else {
         const errorData = await response.json();
-        setMensaje(`Error: ${errorData.title || "Ocurrió un error desconocido."}`);
+        setMensaje(`Error: ${errorData.error}`);
         console.error("Error en el servidor:", errorData);
       }
     } catch (error) {
