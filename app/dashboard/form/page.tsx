@@ -185,7 +185,7 @@ export default function FormularioCompleto() {
         </div>
 
         <div>
-          <label className="block font-semibold mb-1">Unidad de Medida</label>
+          <label className="block font-semibold mb-1">Medida</label>
           <ComboComponent
             localData={data.medidas}
             filterKey="nombre"
