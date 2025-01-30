@@ -1,159 +1,139 @@
 "use client";
 
-import { useState, ChangeEvent, FormEvent, useCallback } from "react";
+import { useState, ChangeEvent, FormEvent, useCallback, useRef } from "react";
 import ComboComponent from "@/components/combo";
 
 interface FormularioState {
+  codigo: string;
+  cantidad: number;
   noFactura: string;
   noCotizacion: string;
-  cantidad: number;
+  proveedorId: number | null;
   productoId: number | null;
   medidaId: number | null;
   marcaId: number | null;
-  codigo: string;
-  observaciones: string;
-  proveedorId: number | null;
+  archivo1: File | null;
+  archivo2: File | null;
 }
 
-// 🔹 Mover estado inicial fuera del componente para evitar recreación en cada render
 const estadoInicial: FormularioState = {
+  codigo: "",
+  cantidad: 0,
   noFactura: "",
   noCotizacion: "",
-  cantidad: 0,
+  proveedorId: null,
   productoId: null,
   medidaId: null,
   marcaId: null,
-  codigo: "",
-  observaciones: "",
-  proveedorId: null,
+  archivo1: null,
+  archivo2: null,
 };
 
 export default function FormularioCompleto(): JSX.Element {
   const [formulario, setFormulario] = useState<FormularioState>(estadoInicial);
-  const [archivos, setArchivos] = useState<File[]>([]);
-  const [mensaje, setMensaje] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
+  const [formKey, setFormKey] = useState<number>(Date.now()); // 🔥 Nuevo trigger para reset
 
-  // 🔹 Manejo de cambios en inputs de texto
+  const archivo1Ref = useRef<HTMLInputElement>(null);
+  const archivo2Ref = useRef<HTMLInputElement>(null);
+
   const manejarCambioTexto = useCallback((e: ChangeEvent<HTMLInputElement>): void => {
     const { name, value, type } = e.target;
-    
-    const parsedValue =
-      type === "number" ? (value === "" ? 0 : parseFloat(value)) : value;
-
-    setFormulario((prev) => ({ ...prev, [name]: parsedValue }));
+    setFormulario((prev) => ({
+      ...prev,
+      [name]: type === "number" ? (value === "" ? 0 : parseFloat(value)) : value,
+    }));
   }, []);
 
-  // 🔹 Manejo de selección de archivos con validación de tipo
-  const manejarCambioArchivo = useCallback((e: ChangeEvent<HTMLInputElement>): void => {
-    if (e.target.files) {
-      const archivosSeleccionados = Array.from(e.target.files);
-      const archivosValidos = archivosSeleccionados.filter((file) =>
-        ["application/pdf", "image/png", "image/jpeg"].includes(file.type)
-      );
-
-      if (archivosValidos.length < 2) {
-        setMensaje("Debes subir al menos dos archivos válidos (PDF o imágenes)");
-      } else {
-        setArchivos(archivosValidos);
-      }
+  const manejarCambioArchivo = useCallback((e: ChangeEvent<HTMLInputElement>, archivoKey: "archivo1" | "archivo2"): void => {
+    const archivo = e.target.files?.[0];
+    if (archivo) {
+      setFormulario((prev) => ({ ...prev, [archivoKey]: archivo }));
     }
   }, []);
 
-  // 🔹 Manejo de selección en ComboComponent
   const manejarSeleccionCombo = useCallback((field: keyof FormularioState) => {
     return (selection: number | null) => {
-      console.log(`Seleccionado para ${field}:`, selection);
       setFormulario((prev) => ({ ...prev, [field]: selection ?? null }));
     };
   }, []);
 
-  // 🔹 Envío del formulario
   const manejarEnvio = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     setLoading(true);
 
-    if (archivos.length < 2) {
-      setMensaje("Debes subir al menos dos archivos.");
-      setLoading(false);
-      return;
-    }
-
     const formData = new FormData();
-    archivos.forEach((archivo, index) => {
-      formData.append(`archivo${index + 1}`, archivo);
-    });
-
     Object.entries(formulario).forEach(([key, value]) => {
-      formData.append(key, value !== null ? String(value) : "");
+      if (value !== null) {
+        formData.append(key, value instanceof File ? value : value.toString());
+      }
     });
-
-    console.log("📤 Enviando datos:", Object.fromEntries(formData.entries()));
 
     try {
-      const response = await fetch("https://localhost/backend/api/compras", {
+      const response = await fetch("/api/proxyCompras", {
         method: "POST",
         body: formData,
       });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "Error desconocido");
-      }
+      if (response.ok) {
+        alert(`Envío Exitoso`);
 
-      const data = await response.json();
-      setMensaje(`Datos enviados exitosamente: ${data.message}`);
-      reiniciarFormulario();
+        // 🔥 Resetear formulario y selects
+        setFormulario(estadoInicial);
+        setFormKey(Date.now()); // Cambia resetTrigger
+
+        // Resetear archivos manualmente
+        if (archivo1Ref.current) archivo1Ref.current.value = "";
+        if (archivo2Ref.current) archivo2Ref.current.value = "";
+      } else {
+        alert("Error en la solicitud");
+      }
     } catch (error) {
-      console.error("❌ Error en la solicitud:", error);
-      setMensaje("Hubo un problema al enviar los datos.");
+      alert("Error en la solicitud");
     } finally {
       setLoading(false);
     }
   };
 
-  // 🔹 Reiniciar formulario
-  const reiniciarFormulario = useCallback((): void => {
-    setFormulario(estadoInicial);
-    setArchivos([]);
-  }, []);
-
   return (
     <div className="max-w-4xl mx-auto p-6 rounded">
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Requisición</h1>
       <form onSubmit={manejarEnvio} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {["noFactura", "noCotizacion", "cantidad", "codigo", "observaciones"].map((name) => (
-          <div key={name}>
-            <label className="block font-semibold mb-1">{name}</label>
-            <input
-              type={name === "cantidad" ? "number" : "text"}
-              name={name}
-              className="border rounded w-full p-2"
-              value={formulario[name as keyof FormularioState] ?? ""}
-              onChange={manejarCambioTexto}
-              required
-            />
-          </div>
-        ))}
-
-        <ComboComponent apiUrl="/api/proxy" propertyName="Cat_Producto" onSelectionChange={manejarSeleccionCombo("productoId")} />
-        <ComboComponent apiUrl="/api/proxy" propertyName="Cat_Medida" onSelectionChange={manejarSeleccionCombo("medidaId")} />
-        <ComboComponent apiUrl="/api/proxy" propertyName="Cat_Marca" onSelectionChange={manejarSeleccionCombo("marcaId")} />
-        <ComboComponent apiUrl="/api/proxy" propertyName="Cat_Proveedor" onSelectionChange={manejarSeleccionCombo("proveedorId")} />
-
-        <div className="col-span-2">
-          <label className="block font-semibold mb-1">Subir Archivos</label>
-          <input type="file" multiple onChange={manejarCambioArchivo} className="border rounded w-full p-2" />
+        <div>
+          <label className="block font-semibold mb-1">Código</label>
+          <input type="text" name="codigo" maxLength={12} className="border rounded w-full p-2" value={formulario.codigo} onChange={manejarCambioTexto} required />
+        </div>
+        <div>
+          <label className="block font-semibold mb-1">Cantidad</label>
+          <input type="number" name="cantidad" min={0} max={999999} className="border rounded w-full p-2" value={formulario.cantidad} onChange={manejarCambioTexto} required />
+        </div>
+        <div>
+          <label className="block font-semibold mb-1">No. Factura</label>
+          <input type="text" name="noFactura" maxLength={12} className="border rounded w-full p-2" value={formulario.noFactura} onChange={manejarCambioTexto} required />
+        </div>
+        <div>
+          <label className="block font-semibold mb-1">No. Cotización</label>
+          <input type="text" name="noCotizacion" maxLength={12} className="border rounded w-full p-2" value={formulario.noCotizacion} onChange={manejarCambioTexto} required />
         </div>
 
+        {/* 🔥 Eliminamos `key={formKey}` y agregamos `resetTrigger={formKey}` */}
+        <ComboComponent apiUrl="/api/proxyCompras" propertyName="Cat_Proveedor" onSelectionChange={manejarSeleccionCombo("proveedorId")} resetTrigger={formKey} />
+        <ComboComponent apiUrl="/api/proxyCompras" propertyName="Cat_Producto" onSelectionChange={manejarSeleccionCombo("productoId")} resetTrigger={formKey} />
+        <ComboComponent apiUrl="/api/proxyCompras" propertyName="Cat_Medida" onSelectionChange={manejarSeleccionCombo("medidaId")} resetTrigger={formKey} />
+        <ComboComponent apiUrl="/api/proxyCompras" propertyName="Cat_Marca" onSelectionChange={manejarSeleccionCombo("marcaId")} resetTrigger={formKey} />
+
+        <div>
+          <label className="block font-semibold mb-1">Archivo 1</label>
+          <input ref={archivo1Ref} type="file" onChange={(e) => manejarCambioArchivo(e, "archivo1")} className="border rounded w-full p-2" />
+        </div>
+        <div>
+          <label className="block font-semibold mb-1">Archivo 2</label>
+          <input ref={archivo2Ref} type="file" onChange={(e) => manejarCambioArchivo(e, "archivo2")} className="border rounded w-full p-2" />
+        </div>
         <div className="col-span-2">
-          <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded w-full" disabled={loading}>
-            {loading ? "Enviando..." : "Enviar"}
-          </button>
+          <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded w-full" disabled={loading}>Enviar</button>
         </div>
       </form>
-
-      {mensaje && <p className="mt-4 text-center text-red-600">{mensaje}</p>}
     </div>
   );
 }

@@ -12,9 +12,10 @@ type ComboInputProps = {
   propertyName?: string;
   onSelectionChange?: (selection: number | null) => void;
   className?: string;
+  resetTrigger?: number; // 🔥 Nuevo prop para resetear el combo
 };
 
-const ComboInput: React.FC<ComboInputProps> = ({ apiUrl, propertyName, onSelectionChange, className }) => {
+const ComboInput: React.FC<ComboInputProps> = ({ apiUrl, propertyName, onSelectionChange, className, resetTrigger }) => {
   const [options, setOptions] = useState<Option[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -42,6 +43,11 @@ const ComboInput: React.FC<ComboInputProps> = ({ apiUrl, propertyName, onSelecti
 
     fetchData();
   }, [apiUrl, propertyName]);
+
+  // 🔥 Resetear el combo cuando resetTrigger cambia
+  useEffect(() => {
+    setSelectedId(null);
+  }, [resetTrigger]);
 
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedValue = event.target.value ? parseInt(event.target.value, 10) : null;
