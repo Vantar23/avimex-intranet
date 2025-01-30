@@ -5,7 +5,7 @@ function sanitizeInput(input: string): string {
 }
 
 export async function GET() {
-  const cookieStore = cookies();
+  const cookieStore = await cookies(); // 🔥 Agrega await aquí
   const cachedData = cookieStore.get("catalogos");
 
   if (cachedData) {
@@ -17,26 +17,10 @@ export async function GET() {
 
   try {
     const response = await fetch("http://37.27.133.117/backend/api/Catalogos");
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.text();
-
-    return new Response(data, {
-      status: 200,
-      headers: {
-        "Content-Type": "text/plain",
-        "Set-Cookie": `catalogos=${encodeURIComponent(data)}; Path=/; Max-Age=86400; HttpOnly`,
-      },
-    });
+    // Resto del código...
   } catch (error) {
-    console.error("Error fetching data:", error);
-    return new Response("Error fetching data", {
-      status: 500,
-      headers: { "Content-Type": "text/plain" },
-    });
+    console.error("Error en la solicitud:", error);
+    return new Response("Error en la solicitud", { status: 500 });
   }
 }
 
