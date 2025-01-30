@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 
 export async function GET() {
-  const cookieStore = await cookies(); // 🔹 Usar await para obtener las cookies correctamente
+  const cookieStore = await cookies(); // 🔹 Añadir await
   const cachedData = cookieStore.get("catalogos");
 
   if (cachedData) {
@@ -20,15 +20,15 @@ export async function GET() {
 
     const data = await response.json();
 
-    // Guarda los datos en las cookies con una expiración de 1 día
-    cookieStore.set("catalogos", JSON.stringify(data), {
-      path: "/",
-      maxAge: 86400, // 1 día en segundos
-    });
-
+    // 🔹 Configurar Set-Cookie en la respuesta
     return new Response(JSON.stringify(data), {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Set-Cookie": `catalogos=${encodeURIComponent(
+          JSON.stringify(data)
+        )}; Path=/; Max-Age=86400; HttpOnly`,
+      },
     });
   } catch (error) {
     console.error("Error fetching data:", error);

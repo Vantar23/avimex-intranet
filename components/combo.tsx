@@ -10,24 +10,23 @@ type ComboInputProps = {
   apiUrl?: string;
   localData?: Option[];
   propertyName?: string;
-  onSelectionChange?: (selection: { [key: string]: number | null }) => void;
+  onSelectionChange?: (selection: number | null) => void;
   className?: string;
 };
 
 const ComboInput: React.FC<ComboInputProps> = ({ apiUrl, propertyName, onSelectionChange, className }) => {
   const [options, setOptions] = useState<Option[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    if (!apiUrl || !propertyName) return; // Evita ejecutar la petición si falta algún dato necesario
+    if (!apiUrl || !propertyName) return;
 
     const fetchData = async () => {
       try {
         setIsLoading(true);
         const response = await axios.get(apiUrl);
 
-        // Validar que la propiedad existe y es un array antes de asignar
         const fetchedData = response.data?.[propertyName];
         if (response.status === 200 && Array.isArray(fetchedData)) {
           setOptions(fetchedData as Option[]);
@@ -48,8 +47,8 @@ const ComboInput: React.FC<ComboInputProps> = ({ apiUrl, propertyName, onSelecti
     const selectedValue = event.target.value ? parseInt(event.target.value, 10) : null;
     setSelectedId(selectedValue);
 
-    if (onSelectionChange && propertyName) {
-      onSelectionChange({ [propertyName]: selectedValue });
+    if (onSelectionChange) {
+      onSelectionChange(selectedValue);
     }
   };
 

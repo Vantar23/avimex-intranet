@@ -5,6 +5,7 @@ import {
   HomeIcon,
   DocumentDuplicateIcon,
   PencilSquareIcon,
+  Squares2X2Icon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -14,7 +15,8 @@ const links = [
   { name: 'Home', href: '/dashboard', icon: HomeIcon },
   { name: 'Invoices', href: '/dashboard/invoices', icon: DocumentDuplicateIcon },
   { name: 'Customers', href: '/dashboard/customers', icon: UserGroupIcon },
-  { name: 'Requisición', href: '/dashboard/form', icon: PencilSquareIcon }, // New link for the form
+  { name: 'Requisición', href: '/dashboard/form', icon: PencilSquareIcon },
+  { name: 'Tabla', href: '/dashboard/grid', icon: Squares2X2Icon } // New link for the form
 ];
 
 export default function NavLinks() {
