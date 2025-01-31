@@ -4,28 +4,45 @@ function sanitizeInput(input: string): string {
   return input.replace(/[<>"'%;()&+]/g, "");
 }
 
-export async function GET() {
-  const cookieStore = await cookies(); // 🔥 Agrega await aquí
-  const cachedData = cookieStore.get("catalogos");
-
-  if (cachedData) {
-    return new Response(cachedData.value, {
-      status: 200,
-      headers: { "Content-Type": "text/plain" },
-    });
-  }
-
+export async function GET(): Promise<Response> {
   try {
+    const cookieStore = await cookies();
+    const cachedData = cookieStore.get("catalogos");
+
+    if (cachedData) {
+      return new Response(cachedData.value, {
+        status: 200,
+        headers: { "Content-Type": "text/plain" },
+      });
+    }
+
     const response = await fetch("http://37.27.133.117/backend/api/Catalogos");
-    // Resto del código...
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.text();
+
+    return new Response(data, {
+      status: 200,
+      headers: {
+        "Content-Type": "text/plain",
+        "Set-Cookie": `catalogos=${encodeURIComponent(data)}; Path=/; Max-Age=86400; HttpOnly`,
+      },
+    });
   } catch (error) {
     console.error("Error en la solicitud:", error);
     return new Response("Error en la solicitud", { status: 500 });
   }
 }
 
-export async function POST(request: Request) {
+export async function POST(request: Request): Promise<Response> {
   try {
+    if (!request.body) {
+      return new Response("Request body is missing", { status: 400 });
+    }
+
     const formData = await request.formData();
     const sanitizedData = new FormData();
     
@@ -59,3 +76,4 @@ export async function POST(request: Request) {
       headers: { "Content-Type": "text/plain" },
     });
   }
+}

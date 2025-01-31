@@ -29,7 +29,7 @@ const estadoInicial: FormularioState = {
   archivo2: null,
 };
 
-export default function FormularioCompleto(): JSX.Element {
+export default function FormularioCompleto() {
   const [formulario, setFormulario] = useState<FormularioState>(estadoInicial);
   const [loading, setLoading] = useState<boolean>(false);
   const [formKey, setFormKey] = useState<number>(Date.now()); // 🔥 Nuevo trigger para reset
