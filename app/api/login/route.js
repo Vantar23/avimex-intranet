@@ -29,11 +29,11 @@ export async function POST(req) {
 
     // Configurar cookie de sesión segura
     const cookie = serialize("session", sessionToken, {
-      httpOnly: true,
+      httpOnly: false, // Cambia a false temporalmente para verificar
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax", // O prueba con 'none' si estás usando diferentes dominios
       path: "/",
-      maxAge: 60 * 60 * 24, // 1 día
+      maxAge: 60 * 60 * 24,
     });
 
     // Responder con éxito y almacenar la cookie
