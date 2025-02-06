@@ -1,30 +1,31 @@
 import { NextResponse } from "next/server";
 import { serialize } from "cookie";
 
-const API_URL = "http://localhost:3000/api/logintest"; // 🔥 Reemplaza con la URL real de la API externa
+const API_URL = "http://37.27.133.117/backend/api/login"; // 🔥 URL del backend externo
 
 export async function POST(req) {
   try {
-    const { username, password } = await req.json();
+    const { usuario, pwd } = await req.json();
 
     // Hacer la solicitud a la API externa
     const response = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ username, password }),
+      body: JSON.stringify({ usuario, pwd }),
     });
 
     if (!response.ok) {
       return NextResponse.json({ message: "Credenciales inválidas" }, { status: 401 });
     }
 
-    // Obtener el token de la API externa
+    // Obtener la respuesta del backend
     const data = await response.json();
-    const sessionToken = data.token; // 🔥 Asegúrate de que la API devuelve un token
-
-    if (!sessionToken) {
+    
+    if (!Array.isArray(data) || data.length === 0 || !data[0].tok) {
       return NextResponse.json({ message: "No se recibió un token válido" }, { status: 401 });
     }
+
+    const sessionToken = data[0].tok;
 
     // Configurar cookie de sesión segura
     const cookie = serialize("session", sessionToken, {

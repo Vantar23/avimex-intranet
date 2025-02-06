@@ -10,10 +10,12 @@ export default function LoginPage() {
   });
   const [loading, setLoading] = useState<boolean>(false);
   const [session, setSession] = useState<string | null>(null);
+  const [isClient, setIsClient] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
-    const userSession = sessionStorage.getItem("session");
+    setIsClient(true); // Marca que el cliente ha montado
+    const userSession = typeof window !== "undefined" ? sessionStorage.getItem("session") : null;
     if (userSession) {
       setSession(userSession);
       router.push("/dashboard"); // Redirigir si ya está autenticado
@@ -28,20 +30,19 @@ export default function LoginPage() {
   const manejarEnvio = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     setLoading(true);
-  
-    const formData = new FormData();
-    formData.append("usuario", formulario.usuario);
-    formData.append("pwd", formulario.pwd);
-  
+
     try {
-      const response = await fetch("http://37.27.133.117/API/login", {
+      const response = await fetch("/api/login", {
         method: "POST",
-        body: formData, // Enviamos FormData
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formulario), // Enviar JSON en lugar de FormData
       });
-  
+
       if (response.ok) {
         const data = await response.json();
-        sessionStorage.setItem("session", data.token);
+        if (typeof window !== "undefined") {
+          sessionStorage.setItem("session", data.token);
+        }
         setSession(data.token);
         router.push("/dashboard");
       } else {
@@ -53,6 +54,9 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+
+  if (!isClient) return null; // Evita la hidratación incorrecta
+
   return (
     <div className="flex items-center justify-center min-h-screen from-blue-500 to-indigo-600 p-4">
       <div className="max-w-md w-full bg-white p-8 rounded-lg ">
@@ -62,7 +66,7 @@ export default function LoginPage() {
             <label className="block font-semibold text-gray-700 mb-2">Usuario</label>
             <input
               type="text"
-              name="usuario" // Ahora "usuario" en lugar de "username"
+              name="usuario"
               className="border rounded w-full p-3 focus:ring-2 focus:ring-blue-400 focus:outline-none"
               value={formulario.usuario}
               onChange={manejarCambioTexto}
@@ -74,7 +78,7 @@ export default function LoginPage() {
             <label className="block font-semibold text-gray-700 mt-2 mb-2">Contraseña</label>
             <input
               type="password"
-              name="pwd" // Ahora "pwd" en lugar de "password"
+              name="pwd"
               className="border rounded w-full p-3 focus:ring-2 focus:ring-blue-400 focus:outline-none"
               value={formulario.pwd}
               onChange={manejarCambioTexto}
