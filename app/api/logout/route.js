@@ -3,13 +3,13 @@ import { serialize } from "cookie";
 
 export async function POST() {
   try {
-    // Configurar la cookie para que expire inmediatamente
+    // Sobrescribir la cookie con una versión expirada
     const cookie = serialize("session", "", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      sameSite: "lax", // Cambiado a 'lax' para evitar problemas en algunos navegadores
       path: "/",
-      maxAge: 0, // Expira inmediatamente
+      expires: new Date(0), // Expira inmediatamente
     });
 
     return new NextResponse(
