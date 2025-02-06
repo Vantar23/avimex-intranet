@@ -14,6 +14,12 @@ export default function SideNav() {
 
       if (response.ok) {
         sessionStorage.removeItem('session');
+        
+        // Verificar si el servidor indica limpiar el localStorage
+        if (response.headers.get("Clear-LocalStorage")) {
+          localStorage.clear();
+        }
+
         window.location.href = '/login';
       } else {
         alert('Error al cerrar sesión');

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { serialize } from "cookie";
 
-const API_URL = "http://37.27.133.117/backend/api/login"; // 🔥 URL del backend externo
+const API_URL = "http://37.27.133.117/backend/api/login"; // 🔥 Backend externo
 
 export async function POST(req) {
   try {
@@ -18,27 +18,24 @@ export async function POST(req) {
       return NextResponse.json({ message: "Credenciales inválidas" }, { status: 401 });
     }
 
-    // Obtener la respuesta del backend
     const data = await response.json();
-    
     if (!Array.isArray(data) || data.length === 0 || !data[0].tok) {
       return NextResponse.json({ message: "No se recibió un token válido" }, { status: 401 });
     }
 
     const sessionToken = data[0].tok;
 
-    // Configurar cookie de sesión segura
+    // 🔹 Configurar la cookie sin `secure: true`
     const cookie = serialize("session", sessionToken, {
-      httpOnly: false, // Cambia a false temporalmente para verificar
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax", // O prueba con 'none' si estás usando diferentes dominios
+      httpOnly: true, // Protege la cookie (no accesible por JS)
+      secure: false, // ❌ NO usar en producción sin HTTPS
+      sameSite: "lax", // Evita bloqueos en navegadores como Safari
       path: "/",
-      maxAge: 60 * 60 * 24,
+      maxAge: 60 * 60 * 24, // 1 día
     });
 
-    // Responder con éxito y almacenar la cookie
     return new NextResponse(
-      JSON.stringify({ message: "Inicio de sesión exitoso", token: sessionToken }),
+      JSON.stringify({ message: "Inicio de sesión exitoso" }),
       {
         status: 200,
         headers: { "Set-Cookie": cookie, "Content-Type": "application/json" },
