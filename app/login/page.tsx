@@ -58,7 +58,7 @@ export default function LoginPage() {
   if (!isClient) return null; // Evita la hidratación incorrecta
 
   return (
-    <div className="flex items-center justify-center min-h-screen from-blue-500 to-indigo-600 p-4">
+    <div className="flex items-center justify-center min-h-screen from-green-500 to-indigo-600 p-4">
       <div className="max-w-md w-full bg-white p-8 rounded-lg ">
         <h1 className="text-3xl font-bold text-gray-800 mb-6 text-center">Iniciar Sesión</h1>
         <form onSubmit={manejarEnvio} className="space-y-6">
@@ -67,7 +67,7 @@ export default function LoginPage() {
             <input
               type="text"
               name="usuario"
-              className="border rounded w-full p-3 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+              className="border rounded w-full p-3 focus:ring-2 focus:ring-green-400 focus:outline-none"
               value={formulario.usuario}
               onChange={manejarCambioTexto}
               required
@@ -79,7 +79,7 @@ export default function LoginPage() {
             <input
               type="password"
               name="pwd"
-              className="border rounded w-full p-3 focus:ring-2 focus:ring-blue-400 focus:outline-none"
+              className="border rounded w-full p-3 focus:ring-2 focus:ring-green-400 focus:outline-none"
               value={formulario.pwd}
               onChange={manejarCambioTexto}
               required
@@ -89,7 +89,7 @@ export default function LoginPage() {
           <div className="mt-5">
             <button
               type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-3 rounded-lg w-full transition duration-200"
+              className="bg-green-600 hover:bg-green-700 text-white font-semibold px-4 py-3 rounded-lg w-full transition duration-200"
               disabled={loading}
             >
               {loading ? "Cargando..." : "Ingresar"}
