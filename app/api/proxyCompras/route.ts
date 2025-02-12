@@ -16,7 +16,9 @@ export async function GET(): Promise<Response> {
       });
     }
 
-    const response = await fetch("http://avimexintranet.com/backend/api/Catalogos");
+    const response = await fetch("http://avimexintranet.com/backend/api/Catalogos", {
+      mode: "cors",
+    });
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
