@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { serialize } from "cookie";
 
-const API_URL = "http://37.27.133.117/backend/api/login"; // 🔥 Backend externo
+const API_URL = "http://avimexintranet.com/backend/api/login"; // 🔥 Backend externo
 
 export async function POST(req) {
   try {

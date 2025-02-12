@@ -16,7 +16,7 @@ export async function GET(): Promise<Response> {
       });
     }
 
-    const response = await fetch("http://37.27.133.117/backend/api/Catalogos");
+    const response = await fetch("http://avimexintranet.com/backend/api/Catalogos");
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -54,7 +54,7 @@ export async function POST(request: Request): Promise<Response> {
       }
     }
 
-    const response = await fetch("http://37.27.133.117/backend/api/compras", {
+    const response = await fetch("http://avimexintranet.com/backend/api/compras", {
       method: "POST",
       body: sanitizedData,
     });
