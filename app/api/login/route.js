@@ -12,6 +12,7 @@ export async function POST(req) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ usuario, pwd }),
+      redirect: "manual", // 🔥 Evita redirecciones automáticas
     });
 
     if (!response.ok) {

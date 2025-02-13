@@ -18,6 +18,7 @@ export async function GET(): Promise<Response> {
 
     const response = await fetch("http://avimexintranet.com/backend/api/Catalogos", {
       mode: "cors",
+      redirect: "manual", // 🔥 Bloquea redirecciones automáticas a HTTPS
     });
 
     if (!response.ok) {
