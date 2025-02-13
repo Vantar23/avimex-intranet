@@ -17,8 +17,6 @@ export async function GET(): Promise<Response> {
     }
 
     const response = await fetch("http://avimexintranet.com/backend/api/Catalogos", {
-      mode: "cors",
-      redirect: "manual", // 🔥 Bloquea redirecciones automáticas a HTTPS
     });
 
     if (!response.ok) {
@@ -40,7 +38,7 @@ export async function GET(): Promise<Response> {
   }
 }
 
-export async function POST(request: Request): Promise<Response> {
+export async function POST(request: Request): Promise <Response> {
   try {
     if (!request.body) {
       return new Response("Request body is missing", { status: 400 });

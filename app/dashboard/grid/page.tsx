@@ -36,7 +36,7 @@ export default function Page() {
       });
   }, []);
 
-  if (loading) return <p className="text-center text-blue-500">Cargando...</p>;
+  if (loading) return <p className="text-center">Cargando...</p>;
   if (error) return <p className="text-center text-red-500">Error: {error}</p>;
 
   return (
