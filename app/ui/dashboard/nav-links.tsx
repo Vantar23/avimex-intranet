@@ -12,9 +12,9 @@ import { usePathname } from 'next/navigation';
 
 // Map of links to display in the side navigation.
 const links = [
-  { name: 'Home', href: '/dashboard', icon: HomeIcon },
-  { name: 'Invoices', href: '/dashboard/invoices', icon: DocumentDuplicateIcon },
-  { name: 'Customers', href: '/dashboard/customers', icon: UserGroupIcon },
+  { name: 'Inicio', href: '/dashboard', icon: HomeIcon },
+  // { name: 'Invoices', href: '/dashboard/invoices', icon: DocumentDuplicateIcon },
+  // { name: 'Customers', href: '/dashboard/customers', icon: UserGroupIcon },
   { name: 'Requisición', href: '/dashboard/form', icon: PencilSquareIcon },
   { name: 'Tabla', href: '/dashboard/grid', icon: Squares2X2Icon } // New link for the form
 ];

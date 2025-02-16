@@ -9,7 +9,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "ID es requerido" }, { status: 400 });
     }
 
-    const apiUrl = `http://37.27.133.117/backend/api/Catalogos?id=${id}`;
+    const apiUrl = `http://avimexintranet.com/backend/api/Catalogos?id=${id}`;
 
     const response = await fetch(apiUrl, {
       method: "GET",
