@@ -12,47 +12,59 @@ type ComboInputProps = {
   propertyName?: string;
   onSelectionChange?: (selection: number | null) => void;
   className?: string;
-  resetTrigger?: number; // 🔥 Nuevo prop para resetear el combo
+  resetTrigger?: number; // Prop para resetear el combo
+  defaultSelectedId?: number; // Nuevo prop para el id por defecto
 };
 
-const ComboInput: React.FC<ComboInputProps> = ({ apiUrl, propertyName, onSelectionChange, className, resetTrigger }) => {
+const ComboInput: React.FC<ComboInputProps> = ({
+  apiUrl,
+  localData,
+  propertyName,
+  onSelectionChange,
+  className,
+  resetTrigger,
+  defaultSelectedId,
+}) => {
   const [options, setOptions] = useState<Option[]>([]);
-  const [selectedId, setSelectedId] = useState<number | null>(null);
+  const [selectedId, setSelectedId] = useState<number | null>(defaultSelectedId ?? null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
-    if (!apiUrl || !propertyName) return;
-
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        const response = await axios.get(apiUrl);
-
-        const fetchedData = response.data?.[propertyName];
-        if (response.status === 200 && Array.isArray(fetchedData)) {
-          setOptions(fetchedData as Option[]);
-        } else {
-          console.error(`Invalid API response format. Expected an array in '${propertyName}'.`);
+    // Si se proporciona localData, la usamos; de lo contrario, se hace fetch desde la API.
+    if (localData && localData.length > 0) {
+      setOptions(localData);
+    } else if (apiUrl && propertyName) {
+      const fetchData = async () => {
+        try {
+          setIsLoading(true);
+          const response = await axios.get(apiUrl);
+          const fetchedData = response.data?.[propertyName];
+          if (response.status === 200 && Array.isArray(fetchedData)) {
+            setOptions(fetchedData as Option[]);
+          } else {
+            console.error(
+              `Formato de respuesta inválido. Se esperaba un arreglo en '${propertyName}'.`
+            );
+          }
+        } catch (error) {
+          console.error("Error al obtener datos de la API:", error);
+        } finally {
+          setIsLoading(false);
         }
-      } catch (error) {
-        console.error("Error fetching data from API:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      };
 
-    fetchData();
-  }, [apiUrl, propertyName]);
+      fetchData();
+    }
+  }, [apiUrl, propertyName, localData]);
 
-  // 🔥 Resetear el combo cuando resetTrigger cambia
+  // Resetea el combo cuando resetTrigger o defaultSelectedId cambian.
   useEffect(() => {
-    setSelectedId(null);
-  }, [resetTrigger]);
+    setSelectedId(defaultSelectedId ?? null);
+  }, [resetTrigger, defaultSelectedId]);
 
   const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedValue = event.target.value ? parseInt(event.target.value, 10) : null;
     setSelectedId(selectedValue);
-
     if (onSelectionChange) {
       onSelectionChange(selectedValue);
     }

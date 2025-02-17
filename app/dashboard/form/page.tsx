@@ -131,7 +131,7 @@ export default function FormularioCompleto() {
           <input ref={archivo2Ref} type="file" onChange={(e) => manejarCambioArchivo(e, "archivo2")} className="border rounded w-full p-2" />
         </div>
         <div className="col-span-2">
-          <button type="submit" className="bg-customGreen-500 text-white px-4 py-2 rounded w-full" disabled={loading}>Enviar</button>
+          <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded w-full" disabled={loading}>Enviar</button>
         </div>
       </form>
     </div>

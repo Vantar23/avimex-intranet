@@ -41,12 +41,64 @@ export default function LoginPage() {
     if (captchaCanvas.current) {
       const ctx = captchaCanvas.current.getContext("2d");
       if (ctx) {
-        ctx.clearRect(0, 0, captchaCanvas.current.width, captchaCanvas.current.height);
-        ctx.font = "24px Arial";
-        ctx.fillStyle = "#000";
-        ctx.rotate((Math.random() * 20 - 10) * Math.PI / 180);
-        ctx.fillText(texto, 10 + Math.random() * 10, 30 + Math.random() * 10);
-        ctx.setTransform(1, 0, 0, 1, 0, 0); // Restablecer transformación
+        const canvasWidth = captchaCanvas.current.width;
+        const canvasHeight = captchaCanvas.current.height;
+
+        // Limpiar el canvas
+        ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+        // Dibujar fondo con un color claro
+        ctx.fillStyle = "#f0f0f0";
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+        // Dibujar líneas de ruido
+        for (let i = 0; i < 6; i++) {
+          ctx.strokeStyle = `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 0.7)`;
+          ctx.beginPath();
+          ctx.moveTo(Math.random() * canvasWidth, Math.random() * canvasHeight);
+          ctx.lineTo(Math.random() * canvasWidth, Math.random() * canvasHeight);
+          ctx.stroke();
+        }
+
+        // Dibujar puntos de ruido
+        for (let i = 0; i < 30; i++) {
+          ctx.fillStyle = `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 0.7)`;
+          ctx.beginPath();
+          const x = Math.random() * canvasWidth;
+          const y = Math.random() * canvasHeight;
+          ctx.arc(x, y, Math.random() * 2 + 1, 0, Math.PI * 2);
+          ctx.fill();
+        }
+
+        // Dibujar cada carácter con estilos y rotaciones aleatorias
+        const letterSpacing = canvasWidth / (texto.length + 1);
+        for (let i = 0; i < texto.length; i++) {
+          const letter = texto[i];
+          ctx.save();
+
+          // Color aleatorio para el carácter
+          ctx.fillStyle = `rgb(${Math.floor(Math.random() * 150)}, ${Math.floor(Math.random() * 150)}, ${Math.floor(Math.random() * 150)})`;
+
+          // Tamaño de fuente aleatorio (entre 24px y 31px)
+          const fontSize = Math.floor(Math.random() * 8) + 24;
+          ctx.font = `${fontSize}px Arial`;
+
+          // Posición y rotación aleatorias
+          const x = letterSpacing * (i + 1);
+          const y = canvasHeight / 2 + (Math.random() * 10 - 5);
+          const angle = (Math.random() * 60 - 30) * (Math.PI / 180);
+
+          // Aplicar transformación: trasladar y rotar
+          ctx.translate(x, y);
+          ctx.rotate(angle);
+
+          // Centrar el texto
+          const metrics = ctx.measureText(letter);
+          const letterWidth = metrics.width;
+          ctx.fillText(letter, -letterWidth / 2, 0);
+
+          ctx.restore();
+        }
       }
     }
   };
@@ -125,8 +177,10 @@ export default function LoginPage() {
           <div>
             <label className="block font-semibold text-gray-700 mb-2">Captcha</label>
             <div className="flex items-center space-x-2 mb-2">
-              <canvas ref={captchaCanvas} width="150" height="40" className="border rounded  p-1" />
-              <button type="button" onClick={generarCaptcha} className=" px-2 py-1 rounded">🔄</button>
+              <canvas ref={captchaCanvas} width="150" height="40" className="border rounded p-1" />
+              <button type="button" onClick={generarCaptcha} className="px-2 py-1 rounded">
+                🔄
+              </button>
             </div>
             <input
               type="text"
