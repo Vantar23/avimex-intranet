@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { headers } from "next/headers";
 
 function sanitizeInput(input: string): string {
   return input.replace(/[<>"'%;()&+]/g, "");
@@ -6,19 +6,7 @@ function sanitizeInput(input: string): string {
 
 export async function GET(): Promise<Response> {
   try {
-    const cookieStore = cookies(); // Corrección: No usar await
-    const cachedData = cookieStore.get("catalogos");
-
-    if (cachedData) {
-      return new Response(cachedData.value, {
-        status: 200,
-        headers: { "Content-Type": "text/plain" },
-      });
-    }
-
-    const response = await fetch("http://avimexintranet.com/backend/api/Catalogos", {
-      cache: "no-store" // Corrección: Evitar caché en la API externa
-    });
+    const response = await fetch("http://avimexintranet.com/backend/api/Catalogos");
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
@@ -28,10 +16,7 @@ export async function GET(): Promise<Response> {
 
     return new Response(data, {
       status: 200,
-      headers: {
-        "Content-Type": "text/plain",
-        "Set-Cookie": `catalogos=${encodeURIComponent(data)}; Path=/; Max-Age=86400; Secure; SameSite=Strict`, // Corrección: Evitar HttpOnly
-      },
+      headers: { "Content-Type": "text/plain" },
     });
   } catch (error) {
     console.error("Error en la solicitud:", error);
@@ -59,7 +44,6 @@ export async function POST(request: Request): Promise<Response> {
     const response = await fetch("http://avimexintranet.com/backend/api/compras", {
       method: "POST",
       body: sanitizedData,
-      headers: { "Content-Type": "application/x-www-form-urlencoded" }, // Corrección: Asegurar tipo de contenido
     });
 
     if (!response.ok) {
