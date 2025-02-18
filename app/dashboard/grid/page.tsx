@@ -300,7 +300,7 @@ export default function Page() {
 
   const downloadFile = (fileName: string) => {
     if (!fileName) return;
-    const filePath = `/documentos/${fileName}`;
+    const filePath = `/public/documentos/${fileName}`;
     const link = document.createElement("a");
     link.href = filePath;
     link.download = fileName;
