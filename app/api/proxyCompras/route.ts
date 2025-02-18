@@ -6,7 +6,7 @@ function sanitizeInput(input: string): string {
 
 export async function GET(): Promise<Response> {
   try {
-    const cookieStore = await cookies();
+    const cookieStore = cookies(); // Corrección: No usar await
     const cachedData = cookieStore.get("catalogos");
 
     if (cachedData) {
@@ -17,6 +17,7 @@ export async function GET(): Promise<Response> {
     }
 
     const response = await fetch("http://avimexintranet.com/backend/api/Catalogos", {
+      cache: "no-store" // Corrección: Evitar caché en la API externa
     });
 
     if (!response.ok) {
@@ -29,7 +30,7 @@ export async function GET(): Promise<Response> {
       status: 200,
       headers: {
         "Content-Type": "text/plain",
-        "Set-Cookie": `catalogos=${encodeURIComponent(data)}; Path=/; Max-Age=86400; HttpOnly`,
+        "Set-Cookie": `catalogos=${encodeURIComponent(data)}; Path=/; Max-Age=86400; Secure; SameSite=Strict`, // Corrección: Evitar HttpOnly
       },
     });
   } catch (error) {
@@ -38,7 +39,7 @@ export async function GET(): Promise<Response> {
   }
 }
 
-export async function POST(request: Request): Promise <Response> {
+export async function POST(request: Request): Promise<Response> {
   try {
     if (!request.body) {
       return new Response("Request body is missing", { status: 400 });
@@ -58,6 +59,7 @@ export async function POST(request: Request): Promise <Response> {
     const response = await fetch("http://avimexintranet.com/backend/api/compras", {
       method: "POST",
       body: sanitizedData,
+      headers: { "Content-Type": "application/x-www-form-urlencoded" }, // Corrección: Asegurar tipo de contenido
     });
 
     if (!response.ok) {
