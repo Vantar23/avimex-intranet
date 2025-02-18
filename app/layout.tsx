@@ -1,8 +1,4 @@
-import { montserrat } from './ui/fonts';
-import './ui/global.css'
-
-/* Este es un nuevo Comentario en el Layout */
-
+import '@/app/ui/global.css'
 export default function RootLayout({
   children,
 }: {
@@ -10,11 +6,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`${montserrat.className} antialiased`}>
+      <body>
         {children}
-        <footer className='py-10 flex justify-center items-center'>
-          Todos los detechos reservados para ControlWare S.A. de C.V.
-        </footer>
         </body>
     </html>
   );

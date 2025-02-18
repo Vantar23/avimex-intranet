@@ -5,16 +5,18 @@ import {
   HomeIcon,
   DocumentDuplicateIcon,
   PencilSquareIcon,
+  Squares2X2Icon,
 } from '@heroicons/react/24/outline';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 // Map of links to display in the side navigation.
 const links = [
-  { name: 'Home', href: '/dashboard', icon: HomeIcon },
-  { name: 'Invoices', href: '/dashboard/invoices', icon: DocumentDuplicateIcon },
-  { name: 'Customers', href: '/dashboard/customers', icon: UserGroupIcon },
-  { name: 'Requisición', href: '/dashboard/form', icon: PencilSquareIcon }, // New link for the form
+  { name: 'Inicio', href: '/dashboard', icon: HomeIcon },
+  // { name: 'Customers', href: '/dashboard/customers', icon: UserGroupIcon },
+  { name: 'Requisición', href: '/dashboard/form', icon: PencilSquareIcon },
+  { name: 'Tabla', href: '/dashboard/grid', icon: Squares2X2Icon }, // New link for the form
+  { name: 'Mejoras', href: '/dashboard/mejoras', icon: DocumentDuplicateIcon },
 ];
 
 export default function NavLinks() {
@@ -31,7 +33,7 @@ export default function NavLinks() {
             key={link.name}
             href={link.href}
             className={`flex h-[48px] grow items-center justify-center gap-2 rounded-md p-3 text-sm font-medium 
-              ${isActive ? 'bg-sky-100 text-blue-600' : 'bg-gray-50 hover:bg-sky-100 hover:text-blue-600'}
+              ${isActive ? 'bg-green-100 text-green-600' : 'bg-gray-50 hover:bg-green-100 hover:text-green-600'}
               md:flex-none md:justify-start md:p-2 md:px-3`}
           >
             <LinkIcon className="w-6" />
