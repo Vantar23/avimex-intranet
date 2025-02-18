@@ -1,6 +1,4 @@
-'use client'
-import React, { CSSProperties, useState, useEffect } from "react";
-import Select from "react-select";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 
 type Option = {
@@ -14,8 +12,8 @@ type ComboInputProps = {
   propertyName?: string;
   onSelectionChange?: (selection: number | null) => void;
   className?: string;
-  resetTrigger?: number;
-  defaultSelectedId?: number;
+  resetTrigger?: number; // Prop para resetear el combo
+  defaultSelectedId?: number; // Nuevo prop para el id por defecto
 };
 
 const ComboInput: React.FC<ComboInputProps> = ({
@@ -27,13 +25,14 @@ const ComboInput: React.FC<ComboInputProps> = ({
   resetTrigger,
   defaultSelectedId,
 }) => {
-  const [options, setOptions] = useState<{ value: number; label: string }[]>([]);
-  const [selectedOption, setSelectedOption] = useState<{ value: number; label: string } | null>(null);
+  const [options, setOptions] = useState<Option[]>([]);
+  const [selectedId, setSelectedId] = useState<number | null>(defaultSelectedId ?? null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   useEffect(() => {
+    // Si se proporciona localData, la usamos; de lo contrario, se hace fetch desde la API.
     if (localData && localData.length > 0) {
-      setOptions(localData.map(option => ({ value: option.ID, label: option.DESCRIPCION })));
+      setOptions(localData);
     } else if (apiUrl && propertyName) {
       const fetchData = async () => {
         try {
@@ -41,9 +40,11 @@ const ComboInput: React.FC<ComboInputProps> = ({
           const response = await axios.get(apiUrl);
           const fetchedData = response.data?.[propertyName];
           if (response.status === 200 && Array.isArray(fetchedData)) {
-            setOptions(fetchedData.map((option: Option) => ({ value: option.ID, label: option.DESCRIPCION })));
+            setOptions(fetchedData as Option[]);
           } else {
-            console.error(`Formato de respuesta inválido. Se esperaba un arreglo en '${propertyName}'.`);
+            console.error(
+              `Formato de respuesta inválido. Se esperaba un arreglo en '${propertyName}'.`
+            );
           }
         } catch (error) {
           console.error("Error al obtener datos de la API:", error);
@@ -51,35 +52,50 @@ const ComboInput: React.FC<ComboInputProps> = ({
           setIsLoading(false);
         }
       };
+
       fetchData();
     }
   }, [apiUrl, propertyName, localData]);
 
+  // Resetea el combo cuando resetTrigger o defaultSelectedId cambian.
   useEffect(() => {
-    if (defaultSelectedId && options.length > 0) {
-      const preselected = options.find(opt => opt.value === defaultSelectedId) || null;
-      setSelectedOption(preselected);
-    } else {
-      setSelectedOption(null);
-    }
-  }, [resetTrigger, defaultSelectedId, options]);
+    setSelectedId(defaultSelectedId ?? null);
+  }, [resetTrigger, defaultSelectedId]);
 
-  const handleChange = (selected: { value: number; label: string } | null) => {
-    setSelectedOption(selected);
+  const handleChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedValue = event.target.value ? parseInt(event.target.value, 10) : null;
+    setSelectedId(selectedValue);
     if (onSelectionChange) {
-      onSelectionChange(selected ? selected.value : null);
+      onSelectionChange(selectedValue);
     }
   };
 
   return (
+<<<<<<< HEAD
     <div className={` ${className || ""}`}>
       <Select
         options={options}
         value={selectedOption}
+=======
+    <div className={`w-full max-w-sm ${className || ""}`}>
+      <select
+        id="api-input"
+        value={selectedId ?? ""}
+>>>>>>> parent of 92517f7 (Merge branch 'master' of https://github.com/Vantar23/nextjs-dashboard)
         onChange={handleChange}
-        isLoading={isLoading}
-        placeholder={isLoading ? "Cargando opciones..." : "Selecciona una opción..."}
-      />
+        className="border rounded w-full p-2"
+        disabled={isLoading}
+      >
+        <option value="" disabled>
+          {isLoading ? "Cargando opciones..." : "Ninguno seleccionado"}
+        </option>
+        {!isLoading &&
+          options.map((option) => (
+            <option key={option.ID} value={option.ID}>
+              {option.DESCRIPCION}
+            </option>
+          ))}
+      </select>
     </div>
   );
 };

@@ -39,7 +39,7 @@ export async function POST(req) {
 
         // Ejecutar los comandos usando 'start /min' para minimizar la ventana
         exec(
-            'start /min cmd /c "cd C:\\Users\\Administrador\\source\\NEXTJS-DASHBOARD && git pull && pnpm i && pnpm run build && pm2 restart nextjs-prod"',
+            'start /min cmd /c "cd C:\\Users\\Administrador\\source\\NEXTJS-DASHBOARD && git pull && npm i && pnpm install && pnpm run build && pm2 restart nextjs-prod"',
             (error, stdout, stderr) => {
                 if (error) {
                     console.error(`Error al ejecutar comandos: ${error.message}`);
