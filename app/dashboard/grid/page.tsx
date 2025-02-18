@@ -300,10 +300,10 @@ export default function Page() {
 
   const downloadFile = (fileName: string) => {
     if (!fileName) return;
-    const filePath = `/public/documentos/${fileName}`;
+    const filePath = `https://avimexintranet.com/documentos/${fileName}`;
     const link = document.createElement("a");
     link.href = filePath;
-    link.download = fileName;
+    link.setAttribute("download", fileName); // Puede ser opcional si el servidor lo maneja
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
