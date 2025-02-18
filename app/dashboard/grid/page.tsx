@@ -264,11 +264,20 @@ export default function Page() {
     setSelectedProduct(null);
   };
 
-  const handleSaveChanges = (updatedProduct: Producto) => {
-    setData((prevData) =>
-      prevData.map((item) => (item.id === updatedProduct.id ? updatedProduct : item))
-    );
-    setIsModalOpen(false); // ⚠️ Cerrar modal sin refrescar la página
+  const handleSaveChanges = async (updatedProduct: Producto) => {
+    setIsModalOpen(false); // Cerrar modal primero
+  
+    try {
+      // Recargar los datos desde el servidor
+      const response = await fetch("/api/proxyGrid?id=1");
+      if (!response.ok) {
+        throw new Error("Error al obtener los datos actualizados");
+      }
+      const updatedData: Producto[] = await response.json();
+      setData(updatedData); // Actualizar la tabla con los nuevos datos
+    } catch (error) {
+      console.error("Error al actualizar la tabla:", error);
+    }
   };
 
   const downloadFile = (fileName: string) => {
@@ -319,7 +328,7 @@ export default function Page() {
                   <td className="p-3 border-b gap-2">
                     {item.NombreFact && (
                       <button
-                        className="px-2 py-1 bg-green-500 text-white rounded"
+                        className="px-2 py-1 bg-green-500 mr-2 mb-2 text-white rounded"
                         onClick={(e) => {
                           e.stopPropagation();
                           downloadFile(item.NombreFact);
@@ -330,7 +339,7 @@ export default function Page() {
                     )}
                     {item.NombreCoti && (
                       <button
-                        className="px-2 py-1 bg-blue-500 mt-2 text-white rounded"
+                        className="px-2 py-1 bg-blue-500 text-white rounded"
                         onClick={(e) => {
                           e.stopPropagation();
                           downloadFile(item.NombreCoti);
@@ -342,7 +351,7 @@ export default function Page() {
                   </td>
                   <td className="p-3 border-b">
                     <button
-                      className="px-3 py-1 bg-black text-white rounded"
+                      className="px-3 py-1 bg-black mb-2 text-white rounded"
                       onClick={(e) => openModal(item, e)}
                     >
                       Editar
