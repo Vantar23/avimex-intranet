@@ -83,55 +83,27 @@ function EditProductModal({ product, onClose, onSave }: EditProductModalProps) {
   }, []);
 
   const manejarEnvio = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
-    e.preventDefault();
+    e.preventDefault(); // ⚠️ Asegurar que el formulario no haga submit real
     setLoading(true);
-
+  
     // Crear objeto con solo los datos modificados
     const cambios: Partial<Producto> = {};
-
-    if (formulario.codigo !== product.Codigo) {
-      cambios.Codigo = formulario.codigo;
-    }
-    if (formulario.cantidad !== product.Cantidad) {
-      cambios.Cantidad = formulario.cantidad;
-    }
-    if ((product.NoFactura || "") !== formulario.noFactura) {
-      // Actualizamos el campo NoFactura (asumiendo que es el que se usa para la factura)
-      cambios.NoFactura = formulario.noFactura;
-    }
-    if ((product.NoCotizacion || "") !== formulario.noCotizacion) {
-      // Actualizamos el campo NoCotizacion, no NombreCoti
-      cambios.NoCotizacion = formulario.noCotizacion;
-    }
-    if (formulario.proveedorId !== product.ProveedorId) {
-      cambios.ProveedorId = formulario.proveedorId!;
-    }
-    if (formulario.productoId !== product.ProductoID) {
-      cambios.ProductoID = formulario.productoId!;
-    }
-    if (formulario.medidaId !== product.MedidaId) {
-      cambios.MedidaId = formulario.medidaId!;
-    }
-    if (formulario.marcaId !== product.MarcaId) {
-      cambios.MarcaId = formulario.marcaId!;
-    }
-
-    // Opcional: Convertir las claves a minúsculas si el backend lo requiere
-    const cambiosLowerCase = Object.keys(cambios).reduce((acc, key) => {
-      acc[key.toLowerCase()] = cambios[key as keyof typeof cambios];
-      return acc;
-    }, {} as { [key: string]: any });
-
-    const payload = cambiosLowerCase;
-    console.log("Payload enviado:", JSON.stringify(payload));
-
+  
+    if (formulario.codigo !== product.Codigo) cambios.Codigo = formulario.codigo;
+    if (formulario.cantidad !== product.Cantidad) cambios.Cantidad = formulario.cantidad;
+    if ((product.NoFactura || "") !== formulario.noFactura) cambios.NoFactura = formulario.noFactura;
+    if ((product.NoCotizacion || "") !== formulario.noCotizacion) cambios.NoCotizacion = formulario.noCotizacion;
+    if (formulario.proveedorId !== product.ProveedorId) cambios.ProveedorId = formulario.proveedorId!;
+    if (formulario.productoId !== product.ProductoID) cambios.ProductoID = formulario.productoId!;
+    if (formulario.medidaId !== product.MedidaId) cambios.MedidaId = formulario.medidaId!;
+    if (formulario.marcaId !== product.MarcaId) cambios.MarcaId = formulario.marcaId!;
+  
     try {
-      // Asumimos que handlePut realiza la petición PUT al proxy
-      await handlePut(product.id, payload);
-
-      const productoActualizado = { ...product, ...cambios };
-      onSave(productoActualizado);
-      onClose();
+      await handlePut(product.id, cambios);
+  
+      // ⚠️ ACTUALIZAMOS EL ESTADO SIN REFRESCAR LA PÁGINA
+      onSave({ ...product, ...cambios });
+      onClose(); // Cierra la modal sin refrescar
     } catch (error) {
       console.error("Error al actualizar:", error);
     } finally {
@@ -296,6 +268,7 @@ export default function Page() {
     setData((prevData) =>
       prevData.map((item) => (item.id === updatedProduct.id ? updatedProduct : item))
     );
+    setIsModalOpen(false); // ⚠️ Cerrar modal sin refrescar la página
   };
 
   const downloadFile = (fileName: string) => {
