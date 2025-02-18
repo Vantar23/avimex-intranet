@@ -45,12 +45,15 @@ export default function FormularioCompleto() {
     }));
   }, []);
 
-  const manejarCambioArchivo = useCallback((e: ChangeEvent<HTMLInputElement>, archivoKey: "archivo1" | "archivo2"): void => {
-    const archivo = e.target.files?.[0];
-    if (archivo) {
-      setFormulario((prev) => ({ ...prev, [archivoKey]: archivo }));
-    }
-  }, []);
+  const manejarCambioArchivo = useCallback(
+    (e: ChangeEvent<HTMLInputElement>, archivoKey: "archivo1" | "archivo2"): void => {
+      const archivo = e.target.files?.[0];
+      if (archivo) {
+        setFormulario((prev) => ({ ...prev, [archivoKey]: archivo }));
+      }
+    },
+    []
+  );
 
   const manejarSeleccionCombo = useCallback((field: keyof FormularioState) => {
     return (selection: number | null) => {
@@ -61,16 +64,16 @@ export default function FormularioCompleto() {
   const manejarEnvio = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     setLoading(true);
-  
-    // 🔥 Verificar si los archivos están correctamente seleccionados antes de enviar
-    if (!formulario.archivo1 && !formulario.archivo2) {
-      alert("Debes seleccionar al menos un archivo.");
-      setLoading(false);
-      return;
-    }
-  
+
+    // // 🔥 Verificar si al menos se ha seleccionado un archivo
+    // if (!formulario.archivo1 && !formulario.archivo2) {
+    //   alert("Debes seleccionar al menos un archivo.");
+    //   setLoading(false);
+    //   return;
+    // }
+
     const formData = new FormData();
-    
+
     // Agregar todos los campos al FormData
     Object.entries(formulario).forEach(([key, value]) => {
       if (value !== null) {
@@ -81,26 +84,26 @@ export default function FormularioCompleto() {
         }
       }
     });
-  
+
     // 🔥 Depurar el FormData antes de enviarlo
     console.log("Enviando FormData:");
     for (let pair of formData.entries()) {
       console.log(pair[0], pair[1]);
     }
-  
+
     try {
       const response = await fetch("/api/proxyCompras", {
         method: "POST",
         body: formData,
       });
-  
+
       if (response.ok) {
         alert(`Envío Exitoso`);
-  
+
         // 🔥 Resetear formulario
         setFormulario(estadoInicial);
         setFormKey(Date.now());
-  
+
         // Resetear los input file
         if (archivo1Ref.current) archivo1Ref.current.value = "";
         if (archivo2Ref.current) archivo2Ref.current.value = "";
@@ -121,37 +124,107 @@ export default function FormularioCompleto() {
       <form onSubmit={manejarEnvio} className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
           <label className="block font-semibold mb-1">Código</label>
-          <input type="text" name="codigo" maxLength={12} className="border rounded w-full p-2" value={formulario.codigo} onChange={manejarCambioTexto} required />
+          <input
+            type="text"
+            name="codigo"
+            maxLength={12}
+            className="border rounded w-full p-2"
+            value={formulario.codigo}
+            onChange={manejarCambioTexto}
+            required
+          />
         </div>
         <div>
           <label className="block font-semibold mb-1">Cantidad</label>
-          <input type="number" name="cantidad" min={0} max={999999} className="border rounded w-full p-2" value={formulario.cantidad} onChange={manejarCambioTexto} required />
+          <input
+            type="number"
+            name="cantidad"
+            min={0}
+            max={999999}
+            className="border rounded w-full p-2"
+            value={formulario.cantidad}
+            onChange={manejarCambioTexto}
+            required
+          />
         </div>
         <div>
           <label className="block font-semibold mb-1">No. Factura</label>
-          <input type="text" name="noFactura" maxLength={12} className="border rounded w-full p-2" value={formulario.noFactura} onChange={manejarCambioTexto} required />
+          <input
+            type="text"
+            name="noFactura"
+            maxLength={12}
+            className="border rounded w-full p-2"
+            value={formulario.noFactura}
+            onChange={manejarCambioTexto}
+            required
+          />
         </div>
         <div>
           <label className="block font-semibold mb-1">No. Cotización</label>
-          <input type="text" name="noCotizacion" maxLength={12} className="border rounded w-full p-2" value={formulario.noCotizacion} onChange={manejarCambioTexto} required />
+          <input
+            type="text"
+            name="noCotizacion"
+            maxLength={12}
+            className="border rounded w-full p-2"
+            value={formulario.noCotizacion}
+            onChange={manejarCambioTexto}
+            required
+          />
         </div>
 
-        {/* 🔥 Eliminamos `key={formKey}` y agregamos `resetTrigger={formKey}` */}
-        <ComboComponent apiUrl="/api/proxyCompras" propertyName="Cat_Proveedor" onSelectionChange={manejarSeleccionCombo("proveedorId")} resetTrigger={formKey} />
-        <ComboComponent apiUrl="/api/proxyCompras" propertyName="Cat_Producto" onSelectionChange={manejarSeleccionCombo("productoId")} resetTrigger={formKey} />
-        <ComboComponent apiUrl="/api/proxyCompras" propertyName="Cat_Medida" onSelectionChange={manejarSeleccionCombo("medidaId")} resetTrigger={formKey} />
-        <ComboComponent apiUrl="/api/proxyCompras" propertyName="Cat_Marca" onSelectionChange={manejarSeleccionCombo("marcaId")} resetTrigger={formKey} />
+        <ComboComponent
+          apiUrl="/api/proxyCompras"
+          propertyName="Cat_Proveedor"
+          onSelectionChange={manejarSeleccionCombo("proveedorId")}
+          resetTrigger={formKey}
+        />
+        <ComboComponent
+          apiUrl="/api/proxyCompras"
+          propertyName="Cat_Producto"
+          onSelectionChange={manejarSeleccionCombo("productoId")}
+          resetTrigger={formKey}
+        />
+        <ComboComponent
+          apiUrl="/api/proxyCompras"
+          propertyName="Cat_Medida"
+          onSelectionChange={manejarSeleccionCombo("medidaId")}
+          resetTrigger={formKey}
+        />
+        <ComboComponent
+          apiUrl="/api/proxyCompras"
+          propertyName="Cat_Marca"
+          onSelectionChange={manejarSeleccionCombo("marcaId")}
+          resetTrigger={formKey}
+        />
 
-        <div>
+        {/* Entradas de archivos separadas */}
+        <div className="col-span-1 md:col-span-2">
           <label className="block font-semibold mb-1">Archivo 1</label>
-          <input ref={archivo1Ref} type="file" onChange={(e) => manejarCambioArchivo(e, "archivo1")} className="border rounded w-full p-2" />
+          <input
+            type="file"
+            className="border rounded w-full p-2"
+            onChange={(e) => manejarCambioArchivo(e, "archivo1")}
+            ref={archivo1Ref}
+          />
         </div>
-        <div>
+        <div className="col-span-1 md:col-span-2">
           <label className="block font-semibold mb-1">Archivo 2</label>
-          <input ref={archivo2Ref} type="file" onChange={(e) => manejarCambioArchivo(e, "archivo2")} className="border rounded w-full p-2" />
+          <input
+            type="file"
+            className="border rounded w-full p-2"
+            onChange={(e) => manejarCambioArchivo(e, "archivo2")}
+            ref={archivo2Ref}
+          />
         </div>
-        <div className="col-span-2">
-          <button type="submit" className="bg-green-500 text-white px-4 py-2 rounded w-full" disabled={loading}>Enviar</button>
+
+        <div className="col-span-1 md:col-span-2">
+          <button
+            type="submit"
+            className="bg-blue-500 text-white w-full rounded px-4 py-2 hover:bg-blue-600"
+            disabled={loading}
+          >
+            {loading ? "Enviando..." : "Enviar"}
+          </button>
         </div>
       </form>
     </div>
