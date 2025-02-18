@@ -72,7 +72,7 @@ const ComboInput: React.FC<ComboInputProps> = ({
   };
 
   return (
-    <div className={`w-full max-w-sm ${className || ""}`}>
+    <div className={` ${className || ""}`}>
       <Select
         options={options}
         value={selectedOption}
