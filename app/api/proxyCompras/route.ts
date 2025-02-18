@@ -3,23 +3,24 @@ import fs from "fs";
 import path from "path";
 
 function sanitizeInput(input: string): string {
-  return input.replace(/[<>"'%;()&+]/g, "");
+  return input.replace(/[<>'"%;()&+]/g, "");
 }
 
-async function saveFile(file: File): Promise<{ filePath: string; fileName: string }> {
+async function saveFile(file: File, prefix: string): Promise<{ filePath: string; fileName: string }> {
   // Directorio de subida: /public/documentos
   const uploadDir = path.join(process.cwd(), "public", "documentos");
   if (!fs.existsSync(uploadDir)) {
     fs.mkdirSync(uploadDir, { recursive: true });
   }
-  const timestamp = Date.now();
-  const fileName = `${timestamp}_${file.name}`;
+  
+  const fileName = `${prefix}${file.name}`;
   const filePathLocal = path.join(uploadDir, fileName);
   const buffer = Buffer.from(await file.arrayBuffer());
   fs.writeFileSync(filePathLocal, buffer);
+  
   // La ruta pública (accesible desde el navegador)
   const publicPath = `/documentos/${fileName}`;
-  return { filePath: publicPath, fileName: file.name };
+  return { filePath: publicPath, fileName };
 }
 
 export async function GET(): Promise<Response> {
@@ -49,28 +50,36 @@ export async function POST(request: Request): Promise<Response> {
       console.log(key, value);
     }
 
+    // Obtener la fecha y hora actual en formato HHmmss_
+    const now = new Date();
+    const fechaHoraActual = now.getHours().toString().padStart(2, '0') +
+                            now.getMinutes().toString().padStart(2, '0') +
+                            now.getSeconds().toString().padStart(2, '0') + "_";
+
     // Crear un nuevo FormData para reenviar al backend
     const newFormData = new FormData();
+    let archnoFactura = "";
+    let archnoCotizacion = "";
 
     // Procesar cada entrada:
     for (const [key, value] of formData.entries()) {
       if ((key === "archivo1" || key === "archivo2") && value instanceof File) {
-        // Guardar el archivo en /public/documentos
-        const saved = await saveFile(value);
+        // Guardar el archivo en /public/documentos con el prefijo correcto
+        const saved = await saveFile(value, fechaHoraActual);
         if (key === "archivo1") {
-          // Agrega la ruta y el nombre del archivo de factura
-          newFormData.append("ArchFact", sanitizeInput(saved.filePath));
-          newFormData.append("NombreFact", sanitizeInput(saved.fileName));
+          archnoFactura = saved.fileName;
         } else if (key === "archivo2") {
-          // Agrega la ruta y el nombre del archivo de cotización
-          newFormData.append("ArchCoti", sanitizeInput(saved.filePath));
-          newFormData.append("NombreCoti", sanitizeInput(saved.fileName));
+          archnoCotizacion = saved.fileName;
         }
       } else {
         // Para los demás campos (texto) se agregan sanitizados
         newFormData.append(key, sanitizeInput(value.toString()));
       }
     }
+
+    // Agregar los nombres de los archivos modificados
+    newFormData.append("ArchFact", archnoFactura);
+    newFormData.append("ArchCoti", archnoCotizacion);
 
     console.log("Datos a enviar al backend:");
     for (const [key, value] of newFormData.entries()) {

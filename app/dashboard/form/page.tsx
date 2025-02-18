@@ -59,10 +59,10 @@ export default function FormularioCompleto() {
   );
 
   const manejarSeleccionCombo = useCallback((field: keyof FormularioState) => {
-    return (selection: string) => {
+    return (selection: number | null) => {
       setFormulario((prev) => ({
         ...prev,
-        [field]: selection,
+        [field]: selection !== null ? selection.toString() : "", // Convertimos a string
       }));
     };
   }, []);
@@ -70,8 +70,29 @@ export default function FormularioCompleto() {
   const manejarEnvio = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-
-    // Construir el FormData con todos los campos y archivos
+  
+    // Validar que todos los campos requeridos estén llenos
+    const camposObligatorios: (keyof FormularioState)[] = [
+      "codigo",
+      "cantidad",
+      "noFactura",
+      "noCotizacion",
+      "observaciones",
+      "proveedorId",
+      "productoId",
+      "medidaId",
+      "marcaId",
+    ];
+  
+    const camposVacios = camposObligatorios.filter((campo) => !formulario[campo]);
+  
+    if (camposVacios.length > 0) {
+      alert("Por favor, completa todos los campos obligatorios antes de enviar.");
+      setLoading(false);
+      return;
+    }
+  
+    // Construcción del FormData
     const formData = new FormData();
     Object.entries(formulario).forEach(([key, value]) => {
       if (value instanceof File) {
@@ -80,18 +101,18 @@ export default function FormularioCompleto() {
         formData.append(key, value);
       }
     });
-
+  
     console.log("Enviando FormData:");
     for (const [key, value] of formData.entries()) {
       console.log(key, value);
     }
-
+  
     try {
       const response = await fetch("/api/proxyCompras", {
         method: "POST",
         body: formData,
       });
-
+  
       if (!response.ok) {
         const errorText = await response.text();
         console.error("Error en la solicitud:", errorText);
@@ -200,7 +221,7 @@ export default function FormularioCompleto() {
         />
         {/* Archivos */}
         <div className="col-span-1 md:col-span-2">
-          <label className="block font-semibold mb-1">Archivo 1</label>
+          <label className="block font-semibold mb-1">Archivo Factura</label>
           <input
             type="file"
             className="border rounded w-full p-2"
@@ -209,7 +230,7 @@ export default function FormularioCompleto() {
           />
         </div>
         <div className="col-span-1 md:col-span-2">
-          <label className="block font-semibold mb-1">Archivo 2</label>
+          <label className="block font-semibold mb-1">Archivo Cotización</label>
           <input
             type="file"
             className="border rounded w-full p-2"
