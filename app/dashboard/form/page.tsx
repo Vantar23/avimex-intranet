@@ -5,26 +5,28 @@ import ComboComponent from "@/components/combo";
 
 interface FormularioState {
   codigo: string;
-  cantidad: number;
+  cantidad: string;
   noFactura: string;
   noCotizacion: string;
-  proveedorId: number | null;
-  productoId: number | null;
-  medidaId: number | null;
-  marcaId: number | null;
+  observaciones: string;
+  proveedorId: string;
+  productoId: string;
+  medidaId: string;
+  marcaId: string;
   archivo1: File | null;
   archivo2: File | null;
 }
 
 const estadoInicial: FormularioState = {
   codigo: "",
-  cantidad: 0,
+  cantidad: "",
   noFactura: "",
   noCotizacion: "",
-  proveedorId: null,
-  productoId: null,
-  medidaId: null,
-  marcaId: null,
+  observaciones: "",
+  proveedorId: "",
+  productoId: "",
+  medidaId: "",
+  marcaId: "",
   archivo1: null,
   archivo2: null,
 };
@@ -32,63 +34,56 @@ const estadoInicial: FormularioState = {
 export default function FormularioCompleto() {
   const [formulario, setFormulario] = useState<FormularioState>(estadoInicial);
   const [loading, setLoading] = useState<boolean>(false);
-  const [formKey, setFormKey] = useState<number>(Date.now()); // 🔥 Nuevo trigger para reset
+  const [formKey, setFormKey] = useState<number>(Date.now());
 
   const archivo1Ref = useRef<HTMLInputElement>(null);
   const archivo2Ref = useRef<HTMLInputElement>(null);
 
-  const manejarCambioTexto = useCallback((e: ChangeEvent<HTMLInputElement>): void => {
-    const { name, value, type } = e.target;
+  const manejarCambioTexto = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
     setFormulario((prev) => ({
       ...prev,
-      [name]: type === "number" ? (value === "" ? 0 : parseFloat(value)) : value,
+      [name]: value,
     }));
   }, []);
 
   const manejarCambioArchivo = useCallback(
-    (e: ChangeEvent<HTMLInputElement>, archivoKey: "archivo1" | "archivo2"): void => {
-      const archivo = e.target.files?.[0];
-      if (archivo) {
-        setFormulario((prev) => ({ ...prev, [archivoKey]: archivo }));
-      }
+    (e: ChangeEvent<HTMLInputElement>, key: "archivo1" | "archivo2") => {
+      const file = e.target.files?.[0] || null;
+      setFormulario((prev) => ({
+        ...prev,
+        [key]: file,
+      }));
     },
     []
   );
 
   const manejarSeleccionCombo = useCallback((field: keyof FormularioState) => {
-    return (selection: number | null) => {
-      setFormulario((prev) => ({ ...prev, [field]: selection ?? null }));
+    return (selection: string) => {
+      setFormulario((prev) => ({
+        ...prev,
+        [field]: selection,
+      }));
     };
   }, []);
 
-  const manejarEnvio = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
+  const manejarEnvio = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
 
-    // // 🔥 Verificar si al menos se ha seleccionado un archivo
-    // if (!formulario.archivo1 && !formulario.archivo2) {
-    //   alert("Debes seleccionar al menos un archivo.");
-    //   setLoading(false);
-    //   return;
-    // }
-
+    // Construir el FormData con todos los campos y archivos
     const formData = new FormData();
-
-    // Agregar todos los campos al FormData
     Object.entries(formulario).forEach(([key, value]) => {
-      if (value !== null) {
-        if (value instanceof File) {
-          formData.append(key, value);
-        } else {
-          formData.append(key, value.toString());
-        }
+      if (value instanceof File) {
+        formData.append(key, value, value.name);
+      } else {
+        formData.append(key, value);
       }
     });
 
-    // 🔥 Depurar el FormData antes de enviarlo
     console.log("Enviando FormData:");
-    for (let pair of formData.entries()) {
-      console.log(pair[0], pair[1]);
+    for (const [key, value] of formData.entries()) {
+      console.log(key, value);
     }
 
     try {
@@ -97,18 +92,16 @@ export default function FormularioCompleto() {
         body: formData,
       });
 
-      if (response.ok) {
-        alert(`Envío Exitoso`);
-
-        // 🔥 Resetear formulario
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Error en la solicitud:", errorText);
+        alert("Error en la solicitud");
+      } else {
+        alert("Envío Exitoso");
         setFormulario(estadoInicial);
         setFormKey(Date.now());
-
-        // Resetear los input file
         if (archivo1Ref.current) archivo1Ref.current.value = "";
         if (archivo2Ref.current) archivo2Ref.current.value = "";
-      } else {
-        alert("Error en la solicitud");
       }
     } catch (error) {
       console.error("Error en la solicitud:", error);
@@ -122,6 +115,7 @@ export default function FormularioCompleto() {
     <div className="max-w-4xl mx-auto p-6 rounded">
       <h1 className="text-2xl font-bold text-gray-800 mb-6">Requisición</h1>
       <form onSubmit={manejarEnvio} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Campos de texto */}
         <div>
           <label className="block font-semibold mb-1">Código</label>
           <input
@@ -137,10 +131,8 @@ export default function FormularioCompleto() {
         <div>
           <label className="block font-semibold mb-1">Cantidad</label>
           <input
-            type="number"
+            type="text"
             name="cantidad"
-            min={0}
-            max={999999}
             className="border rounded w-full p-2"
             value={formulario.cantidad}
             onChange={manejarCambioTexto}
@@ -171,7 +163,17 @@ export default function FormularioCompleto() {
             required
           />
         </div>
-
+        <div className="md:col-span-2">
+          <label className="block font-semibold mb-1">Observaciones</label>
+          <input
+            type="text"
+            name="observaciones"
+            className="border rounded w-full p-2"
+            value={formulario.observaciones}
+            onChange={manejarCambioTexto}
+          />
+        </div>
+        {/* Combos */}
         <ComboComponent
           apiUrl="/api/proxyCompras"
           propertyName="Cat_Proveedor"
@@ -196,8 +198,7 @@ export default function FormularioCompleto() {
           onSelectionChange={manejarSeleccionCombo("marcaId")}
           resetTrigger={formKey}
         />
-
-        {/* Entradas de archivos separadas */}
+        {/* Archivos */}
         <div className="col-span-1 md:col-span-2">
           <label className="block font-semibold mb-1">Archivo 1</label>
           <input
@@ -216,7 +217,7 @@ export default function FormularioCompleto() {
             ref={archivo2Ref}
           />
         </div>
-
+        {/* Botón de envío */}
         <div className="col-span-1 md:col-span-2">
           <button
             type="submit"

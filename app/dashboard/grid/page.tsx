@@ -48,34 +48,6 @@ const estadoInicial: FormularioState = {
   marcaId: null,
 };
 
-// Función auxiliar para realizar la petición PUT a /api/editGrid
-const handlePut = async (id: number, payload: object): Promise<any> => {
-  // Construir la URL que se enviará al proxy
-  const url = `/api/editGrid?id=${id}`;
-  console.log("URL de envío (proxy, desde el cliente):", url);
-
-  try {
-    const response = await fetch(url, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(payload),
-    });
-    if (!response.ok) {
-      throw new Error("Error al actualizar");
-    }
-    const data = await response.json();
-
-    // Imprimir en la consola del navegador la URL completa enviada al backend real
-    console.log("URL de envío completa (recibida del proxy):", data.targetUrl);
-    return data;
-  } catch (error) {
-    console.error("Error en handlePut:", error);
-    throw error;
-  }
-};
-
 interface EditProductModalProps {
   product: Producto;
   onClose: () => void;
@@ -83,12 +55,11 @@ interface EditProductModalProps {
 }
 
 function EditProductModal({ product, onClose, onSave }: EditProductModalProps) {
-  // Inicializamos el formulario usando los datos del registro
   const [formulario, setFormulario] = useState<FormularioState>({
     codigo: product.Codigo,
     cantidad: product.Cantidad,
     noFactura: product.NoFactura || product.NombreFact || "",
-    noCotizacion: product.NoCotizacion || product.NombreCoti || "",
+    noCotizacion: product.NoCotizacion || "",
     proveedorId: product.ProveedorId,
     productoId: product.ProductoID,
     medidaId: product.MedidaId,
@@ -124,11 +95,13 @@ function EditProductModal({ product, onClose, onSave }: EditProductModalProps) {
     if (formulario.cantidad !== product.Cantidad) {
       cambios.Cantidad = formulario.cantidad;
     }
-    if ((product.NoFactura || product.NombreFact || "") !== formulario.noFactura) {
-      cambios.NombreFact = formulario.noFactura;
+    if ((product.NoFactura || "") !== formulario.noFactura) {
+      // Actualizamos el campo NoFactura (asumiendo que es el que se usa para la factura)
+      cambios.NoFactura = formulario.noFactura;
     }
-    if ((product.NoCotizacion || product.NombreCoti || "") !== formulario.noCotizacion) {
-      cambios.NombreCoti = formulario.noCotizacion;
+    if ((product.NoCotizacion || "") !== formulario.noCotizacion) {
+      // Actualizamos el campo NoCotizacion, no NombreCoti
+      cambios.NoCotizacion = formulario.noCotizacion;
     }
     if (formulario.proveedorId !== product.ProveedorId) {
       cambios.ProveedorId = formulario.proveedorId!;
@@ -143,20 +116,17 @@ function EditProductModal({ product, onClose, onSave }: EditProductModalProps) {
       cambios.MarcaId = formulario.marcaId!;
     }
 
-    // Convertir las claves a minúsculas
+    // Opcional: Convertir las claves a minúsculas si el backend lo requiere
     const cambiosLowerCase = Object.keys(cambios).reduce((acc, key) => {
       acc[key.toLowerCase()] = cambios[key as keyof typeof cambios];
       return acc;
     }, {} as { [key: string]: any });
 
-    // El payload será solo los cambios (sin el id)
     const payload = cambiosLowerCase;
-
-    // Imprimir el JSON en consola (formato compacto)
     console.log("Payload enviado:", JSON.stringify(payload));
 
     try {
-      // Llamar a handlePut pasando el id en la URL y el payload sin el id
+      // Asumimos que handlePut realiza la petición PUT al proxy
       await handlePut(product.id, payload);
 
       const productoActualizado = { ...product, ...cambios };
@@ -166,6 +136,27 @@ function EditProductModal({ product, onClose, onSave }: EditProductModalProps) {
       console.error("Error al actualizar:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Simulación de handlePut que llama al proxy (reemplaza por tu implementación real)
+  const handlePut = async (id: number, payload: object): Promise<any> => {
+    const url = `/api/editGrid?id=${id}`;
+    try {
+      const response = await fetch(url, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (!response.ok) {
+        throw new Error("Error al actualizar");
+      }
+      const data = await response.json();
+      console.log("URL de envío completa (recibida del proxy):", data.targetUrl);
+      return data;
+    } catch (error) {
+      console.error("Error en handlePut:", error);
+      throw error;
     }
   };
 
@@ -309,7 +300,8 @@ export default function Page() {
 
   const downloadFile = (fileName: string) => {
     if (!fileName) return;
-    const filePath = `/public/${fileName}`;
+    // Ajusta la ruta si es necesario
+    const filePath = `/documentos/${fileName}`;
     const link = document.createElement("a");
     link.href = filePath;
     link.download = fileName;
@@ -336,6 +328,7 @@ export default function Page() {
                 <th className="p-3 text-left border-b hidden md:table-cell">Fecha</th>
                 <th className="p-3 text-left border-b">Cantidad</th>
                 <th className="p-3 text-left border-b">Código</th>
+                <th className="p-3 text-left border-b">NoCotización</th>
                 <th className="p-3 text-left border-b">Descargar Archivos</th>
                 <th className="p-3 text-left border-b">Acciones</th>
               </tr>
@@ -347,11 +340,10 @@ export default function Page() {
                   <td className="p-3 border-b">{item.proveedor}</td>
                   <td className="p-3 border-b hidden md:table-cell">{item.medida}</td>
                   <td className="p-3 border-b">{item.marca}</td>
-                  <td className="p-3 border-b hidden md:table-cell">
-                    {new Date(item.fecha).toLocaleDateString()}
-                  </td>
+                  <td className="p-3 border-b">{item.fecha}</td>
                   <td className="p-3 border-b">{item.Cantidad}</td>
                   <td className="p-3 border-b">{item.Codigo}</td>
+                  <td className="p-3 border-b">{item.NoCotizacion}</td>
                   <td className="p-3 border-b gap-2">
                     {item.NombreFact && (
                       <button
