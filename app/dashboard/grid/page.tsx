@@ -320,7 +320,7 @@ export default function Page() {
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6 text-center">Tabla de Productos</h1>
+      <h1 className="text-3xl font-bold mb-6 text-center">Grid de Requisiciones</h1>
       {error && <p className="text-red-500">{error}</p>}
       {loading ? (
         <p>Cargando...</p>
@@ -352,7 +352,7 @@ export default function Page() {
                   </td>
                   <td className="p-3 border-b">{item.Cantidad}</td>
                   <td className="p-3 border-b">{item.Codigo}</td>
-                  <td className="p-3 border-b flex gap-2">
+                  <td className="p-3 border-b gap-2">
                     {item.NombreFact && (
                       <button
                         className="px-2 py-1 bg-green-500 text-white rounded"
@@ -366,7 +366,7 @@ export default function Page() {
                     )}
                     {item.NombreCoti && (
                       <button
-                        className="px-2 py-1 bg-blue-500 text-white rounded"
+                        className="px-2 py-1 bg-blue-500 mt-2 text-white rounded"
                         onClick={(e) => {
                           e.stopPropagation();
                           downloadFile(item.NombreCoti);

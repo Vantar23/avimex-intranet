@@ -61,34 +61,54 @@ export default function FormularioCompleto() {
   const manejarEnvio = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     setLoading(true);
-
+  
+    // 🔥 Verificar si los archivos están correctamente seleccionados antes de enviar
+    if (!formulario.archivo1 && !formulario.archivo2) {
+      alert("Debes seleccionar al menos un archivo.");
+      setLoading(false);
+      return;
+    }
+  
     const formData = new FormData();
+    
+    // Agregar todos los campos al FormData
     Object.entries(formulario).forEach(([key, value]) => {
       if (value !== null) {
-        formData.append(key, value instanceof File ? value : value.toString());
+        if (value instanceof File) {
+          formData.append(key, value);
+        } else {
+          formData.append(key, value.toString());
+        }
       }
     });
-
+  
+    // 🔥 Depurar el FormData antes de enviarlo
+    console.log("Enviando FormData:");
+    for (let pair of formData.entries()) {
+      console.log(pair[0], pair[1]);
+    }
+  
     try {
       const response = await fetch("/api/proxyCompras", {
         method: "POST",
         body: formData,
       });
-
+  
       if (response.ok) {
         alert(`Envío Exitoso`);
-
-        // 🔥 Resetear formulario y selects
+  
+        // 🔥 Resetear formulario
         setFormulario(estadoInicial);
-        setFormKey(Date.now()); // Cambia resetTrigger
-
-        // Resetear archivos manualmente
+        setFormKey(Date.now());
+  
+        // Resetear los input file
         if (archivo1Ref.current) archivo1Ref.current.value = "";
         if (archivo2Ref.current) archivo2Ref.current.value = "";
       } else {
         alert("Error en la solicitud");
       }
     } catch (error) {
+      console.error("Error en la solicitud:", error);
       alert("Error en la solicitud");
     } finally {
       setLoading(false);

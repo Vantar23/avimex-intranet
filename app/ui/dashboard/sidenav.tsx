@@ -26,7 +26,7 @@ export default function SideNav() {
         if (response.headers.get("Clear-LocalStorage")) {
           localStorage.clear();
         }
-        window.location.href = "/login";
+        window.location.href = "/";
       } else {
         alert("Error al cerrar sesión");
       }
