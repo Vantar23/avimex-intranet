@@ -1,90 +1,54 @@
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { mkdir, writeFile } from "fs/promises";
+import path from "path";
 
-// ✅ Interfaces para tipar datos
-interface UserRequestBody {
-  name: string;
-  email: string;
-}
+export async function POST(request: NextRequest) {
+  try {
+    // Se espera que el body tenga dos propiedades:
+    // - minimalPayload: objeto con { ModuloId, title, description }
+    // - fullJson: el JSON "completo" generado en el cliente
+    const { minimalPayload, fullJson } = await request.json();
 
-interface ProductRequestBody {
-  productName: string;
-  price: number;
-}
+    // Reenvío al endpoint externo (backend)
+    const response = await fetch("http://avimexintranet.com/backend/api/formulario", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(minimalPayload),
+    });
 
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
-  const { method } = req;
-  const { endpoint } = req.query; // Captura el endpoint de la URL
+    if (!response.ok) {
+      return NextResponse.json(
+        { error: "Error al enviar el formulario al backend" },
+        { status: response.status }
+      );
+    }
 
-  switch (method) {
-    case "GET":
-      return handleGet(endpoint as string, res);
-    case "POST":
-      return handlePost(req, res, endpoint as string);
-    case "PUT":
-      return handlePut(req, res, endpoint as string);
-    default:
-      return res.status(405).json({ message: `Método ${method} no permitido` });  
-  }
-}
+    // Se espera que el backend retorne un array de objetos, por ejemplo: [{ "id": 4 }]
+    const data = await response.json();
+    const id = data[0]?.id;
+    if (!id) {
+      return NextResponse.json({ error: "ID no recibido del backend" }, { status: 500 });
+    }
 
-//
-// ✅ Función para manejar GET
-//
-function handleGet(endpoint: string, res: NextApiResponse) {
-  switch (endpoint) {
-    case "users":
-      return res.status(200).json({ message: "Lista de usuarios", users: ["Juan", "Ana", "Luis"] });
-    case "products":
-      return res.status(200).json({ message: "Lista de productos", products: ["Laptop", "Teléfono", "Tablet"] });
-    default:
-      return res.status(404).json({ message: "Endpoint no encontrado" });
-  }
-}
+    // Definir la ruta donde se guardará el archivo:
+    // - Carpeta base: "form-data"
+    // - Subcarpeta: nombre del ModuloId
+    const baseDir = path.join(process.cwd(), "public/form-data");
+    const subDir = path.join(baseDir, String(minimalPayload.ModuloId));
+    // Crear la carpeta de forma recursiva en caso de que no exista
+    await mkdir(subDir, { recursive: true });
 
-//
-// ✅ Función para manejar POST
-//
-function handlePost(req: NextApiRequest, res: NextApiResponse, endpoint: string) {
-  switch (endpoint) {
-    case "users":
-      const { name, email } = req.body as UserRequestBody;
-      if (!name || !email) {
-        return res.status(400).json({ message: "Datos incompletos para usuarios" });
-      }
-      return res.status(201).json({ message: `Usuario ${name} registrado`, email });
+    const fileName = `${id}.json`;
+    const filePath = path.join(subDir, fileName);
 
-    case "products":
-      const { productName, price } = req.body as ProductRequestBody;
-      if (!productName || price === undefined) {
-        return res.status(400).json({ message: "Datos incompletos para productos" });
-      }
-      return res.status(201).json({ message: `Producto ${productName} registrado`, price });
+    // Escribir el archivo con el JSON completo formateado
+    await writeFile(filePath, JSON.stringify(fullJson, null, 2), "utf-8");
 
-    default:
-      return res.status(404).json({ message: "Endpoint no encontrado" });
-  }
-}
-
-//
-// ✅ Función para manejar PUT
-//
-function handlePut(req: NextApiRequest, res: NextApiResponse, endpoint: string) {
-  switch (endpoint) {
-    case "users":
-      const { name, email } = req.body as UserRequestBody;
-      if (!name || !email) {
-        return res.status(400).json({ message: "Datos incompletos para actualizar usuario" });
-      }
-      return res.status(200).json({ message: `Usuario ${name} actualizado`, email });
-
-    case "products":
-      const { productName, price } = req.body as ProductRequestBody;
-      if (!productName || price === undefined) {
-        return res.status(400).json({ message: "Datos incompletos para actualizar producto" });
-      }
-      return res.status(200).json({ message: `Producto ${productName} actualizado`, price });
-
-    default:
-      return res.status(404).json({ message: "Endpoint no encontrado" });
+    // Responder con el id y el nombre del archivo creado
+    return NextResponse.json({ id, file: fileName }, { status: 200 });
+  } catch (error) {
+    console.error("Error en el endpoint proxy:", error);
+    return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
   }
 }

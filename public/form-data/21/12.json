@@ -1,0 +1,21 @@
+{
+  "ModuloId": 21,
+  "title": "Registro de Usuario",
+  "description": "Complete los siguientes campos para registrarse",
+  "fields": [
+    {
+      "label": "Combo Compras",
+      "name": "compras",
+      "type": "combo",
+      "required": false,
+      "component": "ComboComponent",
+      "apiUrl": "http://avimexintranet.com/backend/api/catalogos",
+      "options": []
+    }
+  ],
+  "submitButton": {
+    "label": "Enviar",
+    "action": "/api/submit",
+    "method": "POST"
+  }
+}
