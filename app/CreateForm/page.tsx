@@ -72,8 +72,7 @@ const FormBuilder: React.FC = () => {
         updatedFields[index].apiUrl = undefined;
       } else if (value === "combo") {
         updatedFields[index].component = "ComboComponent";
-        updatedFields[index].apiUrl = "";
-        updatedFields[index].options = [];
+        updatedFields[index].apiUrl = ""; 
       }
     }
     (updatedFields[index] as any)[key] = value;
@@ -119,29 +118,6 @@ const FormBuilder: React.FC = () => {
     setFields(updatedFields);
   };
 
-  // Cargar datos desde la API para el campo combo usando fetch
-  const loadComboData = async (index: number) => {
-    const field = fields[index];
-    if (!field.apiUrl) return;
-    try {
-      const response = await fetch(field.apiUrl);
-      if (!response.ok) {
-        throw new Error("Error en la respuesta de la API");
-      }
-      const data = await response.json();
-      // Se asume que la API retorna un arreglo de objetos con 'id' y 'nombre'
-      const options = data.map((item: any) => ({
-        label: item.nombre || item.label || "Sin Nombre",
-        value: item.id || item.value || "",
-      }));
-      const updatedFields = [...fields];
-      updatedFields[index].options = options;
-      setFields(updatedFields);
-    } catch (error) {
-      console.error("Error al cargar datos del combo:", error);
-    }
-  };
-
   // Generar JSON completo del formulario (para previsualización)
   const generatedJson = {
     ModuloId: parseInt(moduloId),
@@ -152,8 +128,8 @@ const FormBuilder: React.FC = () => {
   };
 
   // Función para enviar solo el JSON mínimo a la URL local (/api/form) usando fetch
-// Suponiendo que 'generatedJson' es el objeto completo generado por el componente
-const handleSubmitForm = async () => {
+  // Suponiendo que 'generatedJson' es el objeto completo generado por el componente
+  const handleSubmitForm = async () => {
     const minimalPayload = {
       ModuloId: parseInt(moduloId),
       title: formTitle,
@@ -339,12 +315,6 @@ const handleSubmitForm = async () => {
                 className="w-full p-2 border rounded-md mb-2"
                 placeholder="https://api.example.com/ciudades"
               />
-              <button
-                onClick={() => loadComboData(index)}
-                className="bg-blue-500 text-white px-3 py-1 rounded-md"
-              >
-                Cargar Datos
-              </button>
             </div>
           )}
         </div>
