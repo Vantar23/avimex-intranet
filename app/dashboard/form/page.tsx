@@ -6,7 +6,7 @@ import DynamicForm from "@/components/FormBuilder";
 const DynamicFormPage = () => {
   return (
     <div style={{  margin: "auto", padding: "20px" }}>
-      <DynamicForm num="12" subcarpeta="21" />
+      <DynamicForm num="16" subcarpeta="1" />
     </div>
   );
 };

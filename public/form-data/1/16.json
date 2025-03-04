@@ -1,0 +1,30 @@
+{
+  "ModuloId": 1,
+  "title": "Requisiciones",
+  "description": "Llene todos los campos del formulario",
+  "fields": [
+    {
+      "label": "Codigo",
+      "name": "codigo",
+      "type": "text",
+      "required": false
+    },
+    {
+      "label": "Cantidad",
+      "name": "cantidad",
+      "type": "number",
+      "required": false
+    },
+    {
+      "label": "No. Factura",
+      "name": "NoFactura",
+      "type": "text",
+      "required": false
+    }
+  ],
+  "submitButton": {
+    "label": "Enviar",
+    "action": "/api/compras",
+    "method": "POST"
+  }
+}
