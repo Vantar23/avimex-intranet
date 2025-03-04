@@ -112,6 +112,25 @@ const ComboInput: React.FC<ComboInputProps> = ({
   return (
     <div className={`w-full ${className || ""}`}>
       <Select
+        styles={{
+          control: (provided) => ({
+            ...provided,
+            width: "100%",
+            height: "42px",
+            border: "1px solid #000000",
+            borderRadius: "6px",
+          }),
+          placeholder: (provided) => ({
+            ...provided,
+            color: "#999",
+          }),
+          // Puedes agregar más secciones para personalizar otros elementos, por ejemplo:
+          option: (provided, state) => ({
+            ...provided,
+            backgroundColor: state.isFocused ? "#eee" : "white",
+            color: "black",
+          }),
+        }}
         options={options}
         value={selectedOption}
         onChange={handleChange}

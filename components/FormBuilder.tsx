@@ -1,6 +1,7 @@
 'use client'
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import ComboInput from "./ComboInput";
 
 interface FormField {
   label: string;
@@ -80,7 +81,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
   if (!formConfig) return <p>Cargando formulario...</p>;
 
   return (
-    <form onSubmit={handleSubmit} style={{ padding: "16px", borderRadius: "8px", maxWidth: "1200px", margin: "auto", display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "24px" }}>
+    <form onSubmit={handleSubmit} style={{  display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "24px" }}>
       <h2 style={{ gridColumn: "span 2", fontSize: "24px", fontWeight: "bold", marginBottom: "12px" }}>{formConfig.title}</h2>
       <p style={{ gridColumn: "span 2", fontSize: "16px", marginBottom: "20px" }}>{formConfig.description}</p>
 
@@ -122,7 +123,11 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
               onChange={(e) => handleChange(field.name, e.target.files?.[0])}
             />
           ) : field.type === "combo" && field.component === "ComboComponent" ? (
-            <ComboComponent apiUrl={field.apiUrl || "/api/proxyCompras"} propertyName="Cat_Proveedor" defaultSelectedId={formData[field.name]} onSelectionChange={(value) => handleChange(field.name, value)} />
+            <ComboInput 
+              apiUrl={field.apiUrl || "/api/proxyJson"} 
+              defaultSelectedId={formData[field.name]} 
+              onSelectionChange={(value) => handleChange(field.name, value)} 
+            />
           ) : null}
         </div>
       ))}
