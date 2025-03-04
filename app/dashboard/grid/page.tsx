@@ -188,28 +188,24 @@ function EditProductModal({ product, onClose, onSave }: EditProductModalProps) {
           </div>
           <ComboComponent
             apiUrl="/api/proxyCompras"
-            propertyName="Cat_Proveedor"
             defaultSelectedId={formulario.proveedorId || undefined}
             onSelectionChange={manejarSeleccionCombo("proveedorId")}
             resetTrigger={formKey}
           />
           <ComboComponent
             apiUrl="/api/proxyCompras"
-            propertyName="Cat_Producto"
             defaultSelectedId={formulario.productoId || undefined}
             onSelectionChange={manejarSeleccionCombo("productoId")}
             resetTrigger={formKey}
           />
           <ComboComponent
             apiUrl="/api/proxyCompras"
-            propertyName="Cat_Medida"
             defaultSelectedId={formulario.medidaId || undefined}
             onSelectionChange={manejarSeleccionCombo("medidaId")}
             resetTrigger={formKey}
           />
           <ComboComponent
             apiUrl="/api/proxyCompras"
-            propertyName="Cat_Marca"
             defaultSelectedId={formulario.marcaId || undefined}
             onSelectionChange={manejarSeleccionCombo("marcaId")}
             resetTrigger={formKey}
