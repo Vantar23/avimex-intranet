@@ -30,6 +30,6 @@
     ".next/types/**/*.ts",
     "app/lib/placeholder-data.ts",
     "scripts/seed.js"
-, "app/api/proxyJson/route.js", "app/api/proxy/route.js"  ],
+, "app/api/localJSON/route.js", "app/api/proxy/route.js"  ],
   "exclude": ["node_modules"]
 }

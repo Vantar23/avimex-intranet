@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect, ChangeEvent, FormEvent, useCallback } from "react";
-import ComboComponent from "@/components/combo";
 
 // Interfaz del producto (según el JSON que se recibe)
 interface Producto {
@@ -186,30 +185,6 @@ function EditProductModal({ product, onClose, onSave }: EditProductModalProps) {
               required
             />
           </div>
-          <ComboComponent
-            apiUrl="/api/proxyCompras"
-            defaultSelectedId={formulario.proveedorId || undefined}
-            onSelectionChange={manejarSeleccionCombo("proveedorId")}
-            resetTrigger={formKey}
-          />
-          <ComboComponent
-            apiUrl="/api/proxyCompras"
-            defaultSelectedId={formulario.productoId || undefined}
-            onSelectionChange={manejarSeleccionCombo("productoId")}
-            resetTrigger={formKey}
-          />
-          <ComboComponent
-            apiUrl="/api/proxyCompras"
-            defaultSelectedId={formulario.medidaId || undefined}
-            onSelectionChange={manejarSeleccionCombo("medidaId")}
-            resetTrigger={formKey}
-          />
-          <ComboComponent
-            apiUrl="/api/proxyCompras"
-            defaultSelectedId={formulario.marcaId || undefined}
-            onSelectionChange={manejarSeleccionCombo("marcaId")}
-            resetTrigger={formKey}
-          />
           <div className="col-span-2 flex justify-end gap-4 mt-4">
             <button type="button" className="px-4 py-2 bg-black text-white rounded" onClick={onClose}>
               Cancelar

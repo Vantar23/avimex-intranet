@@ -1,5 +1,6 @@
-"use client";
+'use client'
 import React, { useState } from "react";
+import ComboInput from "@/components/ComboInput"; // Ajusta la ruta según la ubicación del archivo
 
 interface FieldOption {
   label: string;
@@ -36,7 +37,7 @@ const FormBuilder: React.FC = () => {
     method: "POST",
   });
 
-  // Opciones disponibles para ModuloId
+  // Opciones disponibles para ModuloId (se pueden usar si se desea renderizar un select en lugar de ComboInput)
   const moduloOptions: FieldOption[] = [
     { label: "Usuarios", value: "21" },
     { label: "Productos", value: "22" },
@@ -128,7 +129,6 @@ const FormBuilder: React.FC = () => {
   };
 
   // Función para enviar solo el JSON mínimo a la URL local (/api/form) usando fetch
-  // Suponiendo que 'generatedJson' es el objeto completo generado por el componente
   const handleSubmitForm = async () => {
     const minimalPayload = {
       ModuloId: parseInt(moduloId),
@@ -140,7 +140,7 @@ const FormBuilder: React.FC = () => {
   
     console.log("Payload a enviar:", { minimalPayload, fullJson });
     try {
-      const response = await fetch("/api/form", {
+      const response = await fetch("/api/formCreate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ minimalPayload, fullJson }),
@@ -155,6 +155,11 @@ const FormBuilder: React.FC = () => {
     }
   };
 
+  // Función para manejar la selección en ComboInput
+  const handleModuloChange = (selection: number | null) => {
+    setModuloId(selection ? selection.toString() : ""); // Se convierte el número en string
+  };
+
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-lg">
       <h2 className="text-2xl font-bold mb-4">Generador de Formularios</h2>
@@ -162,17 +167,12 @@ const FormBuilder: React.FC = () => {
       {/* Selección del ModuloId */}
       <div className="mb-4">
         <label className="block text-sm font-medium">Módulo</label>
-        <select
-          value={moduloId}
-          onChange={(e) => setModuloId(e.target.value)}
-          className="w-full p-2 border rounded-md"
-        >
-          {moduloOptions.map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
+        <ComboInput
+          apiUrl="http://avimexintranet.com/backend/api/modulo"
+          onSelectionChange={handleModuloChange}
+          className="w-full"
+          defaultSelectedId={parseInt(moduloId)} // Convierte string a número
+        />
       </div>
 
       {/* Configuración del formulario */}
@@ -246,7 +246,6 @@ const FormBuilder: React.FC = () => {
             placeholder="Etiqueta del campo"
           />
 
-          {/* Campo editable para el name */}
           <label className="block text-sm font-medium">Nombre del Campo</label>
           <input
             type="text"
@@ -274,7 +273,7 @@ const FormBuilder: React.FC = () => {
             <option value="combo">Combo (API)</option>
           </select>
 
-          {/* Opciones para select */}
+          {/* Opciones para campos de tipo select */}
           {field.type === "select" && (
             <div className="mt-2">
               <h4 className="text-sm font-medium">Opciones</h4>
@@ -283,7 +282,9 @@ const FormBuilder: React.FC = () => {
                   <input
                     type="text"
                     value={option.label}
-                    onChange={(e) => handleOptionChange(index, optionIndex, "label", e.target.value)}
+                    onChange={(e) =>
+                      handleOptionChange(index, optionIndex, "label", e.target.value)
+                    }
                     className="p-2 border rounded-md flex-1"
                     placeholder="Texto de opción"
                   />
@@ -328,7 +329,7 @@ const FormBuilder: React.FC = () => {
         Agregar Campo
       </button>
 
-      {/* Botón para enviar formulario (JSON mínimo) */}
+      {/* Botón para enviar formulario */}
       <button
         onClick={handleSubmitForm}
         className="w-full bg-green-500 text-white py-2 mt-4 rounded-md hover:bg-green-600"
@@ -336,7 +337,7 @@ const FormBuilder: React.FC = () => {
         Enviar Formulario
       </button>
 
-      {/* JSON generado */}
+      {/* Previsualización del JSON generado */}
       <pre className="bg-gray-100 p-4 rounded-md text-sm mt-4">
         {JSON.stringify(generatedJson, null, 2)}
       </pre>

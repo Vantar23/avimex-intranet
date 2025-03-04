@@ -1,7 +1,7 @@
 'use client'
 
 import React from "react";
-import DynamicForm from "@/components/dynamicForm";
+import DynamicForm from "@/components/FormBuilder";
 
 const DynamicFormPage = () => {
   return (
