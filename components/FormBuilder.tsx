@@ -63,21 +63,12 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = async (event: React.FormEvent) => {
+  const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
-    if (!formConfig) return;
-    try {
-      await axios({
-        url: formConfig.submitButton.action,
-        method: formConfig.submitButton.method,
-        data: formData,
-      });
-      alert("Formulario enviado correctamente");
-    } catch (error) {
-      console.error("Error submitting form:", error);
-    }
+    // Imprime el JSON del formulario en la consola en formato legible
+    console.log("JSON del formulario:", JSON.stringify(formData, null, 2));
+    alert("Revisa la consola para ver el JSON.");
   };
-
   if (!formConfig) return <p>Cargando formulario...</p>;
 
   return (
