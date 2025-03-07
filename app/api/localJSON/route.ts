@@ -24,4 +24,4 @@ export async function POST(req: Request) {
     console.error("❌ Error en el proxy:", error);
     return NextResponse.json({ error: "Error en el proxy" }, { status: 500 });
   }
-}
+} 

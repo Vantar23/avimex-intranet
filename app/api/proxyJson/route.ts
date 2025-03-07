@@ -10,7 +10,7 @@ export async function GET(req: Request) {
 
 export async function PUT(req: Request) {
   return handleRequest(req, "PUT");
-}
+} 
 
 export async function DELETE(req: Request) {
   return handleRequest(req, "DELETE");
