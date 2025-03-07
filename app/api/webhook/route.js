@@ -78,4 +78,4 @@ export async function GET() {
     '<h1>Webhook Server</h1><p>Servidor funcionando correctamente. Ruta POST: /api/webhook.</p>',
     { headers: { 'Content-Type': 'text/html' } }
   );
-}
+}//TEST
