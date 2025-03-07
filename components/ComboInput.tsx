@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Select from "react-select";
 import axios from "axios";
 
@@ -10,6 +10,7 @@ type ComboInputProps = {
   className?: string;
   resetTrigger?: number;
   defaultSelectedId?: number;
+  disabled?: boolean; // Propiedad para deshabilitar el input
 };
 
 const ComboInput: React.FC<ComboInputProps> = ({
@@ -19,6 +20,7 @@ const ComboInput: React.FC<ComboInputProps> = ({
   className,
   resetTrigger,
   defaultSelectedId,
+  disabled,
 }) => {
   const [mounted, setMounted] = useState(false);
   const [options, setOptions] = useState<{ value: number; label: string }[]>([]);
@@ -53,7 +55,7 @@ const ComboInput: React.FC<ComboInputProps> = ({
 
       // Mapear los datos para react-select
       setOptions(
-        data.map(item => ({
+        data.map((item) => ({
           value: item[idField],
           label: item[labelField],
         }))
@@ -90,7 +92,7 @@ const ComboInput: React.FC<ComboInputProps> = ({
   // Actualizar opción seleccionada según el valor por defecto o trigger de reinicio
   useEffect(() => {
     if (defaultSelectedId && options.length > 0) {
-      const preselected = options.find(opt => opt.value === defaultSelectedId) || null;
+      const preselected = options.find((opt) => opt.value === defaultSelectedId) || null;
       setSelectedOption(preselected);
     } else {
       setSelectedOption(null);
@@ -124,7 +126,6 @@ const ComboInput: React.FC<ComboInputProps> = ({
             ...provided,
             color: "#999",
           }),
-          // Puedes agregar más secciones para personalizar otros elementos, por ejemplo:
           option: (provided, state) => ({
             ...provided,
             backgroundColor: state.isFocused ? "#eee" : "white",
@@ -135,6 +136,8 @@ const ComboInput: React.FC<ComboInputProps> = ({
         value={selectedOption}
         onChange={handleChange}
         isLoading={isLoading}
+        isDisabled={disabled}
+        isClearable // Permite limpiar la selección
         placeholder={isLoading ? "Cargando opciones..." : "Selecciona una opción..."}
       />
     </div>

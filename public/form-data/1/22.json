@@ -27,7 +27,7 @@
         "label": "Archivo de Factura",
         "name": "ArchFact",
         "type": "file",
-        "required": false
+        "required": true
       }
     },
     {
@@ -42,7 +42,7 @@
         "label": "Archivo de Cotización",
         "name": "ArchCoti",
         "type": "file",
-        "required": false
+        "required": true
       }
     },
     {

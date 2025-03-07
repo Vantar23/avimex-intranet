@@ -54,9 +54,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
   // y se guarda en el JSON solo el nombre con prefijo HHmmss.
   const handleFileChange = (name: string, file: File | undefined) => {
     if (file) {
-      // Guardar el objeto File para enviarlo luego a /api/SaveFile
       setFileData((prev) => ({ ...prev, [name]: file }));
-      // Generar el nuevo nombre con prefijo de hora (HHmmss)
       const now = new Date();
       const hours = String(now.getHours()).padStart(2, "0");
       const minutes = String(now.getMinutes()).padStart(2, "0");
@@ -69,13 +67,13 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-  
+
     // Limpiar espacios adicionales en el campo 'proveedorId'
     if (formData.proveedorId && typeof formData.proveedorId === "string") {
       formData.proveedorId = formData.proveedorId.trim();
     }
-  
-    // Validar campos "either": se debe completar al menos uno de los dos campos
+
+    // Validar campos "either": se debe completar al menos uno de los dos subcampos
     if (formConfig) {
       for (const field of formConfig.fields) {
         if (field.type === "either" && field.eitherFields) {
@@ -92,15 +90,13 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
         }
       }
     }
-  
-    // Mostrar en consola el JSON del formulario
+
     console.log("JSON del formulario:", JSON.stringify(formData, null, 2));
-  
+
     let savedFiles = null;
     // Si hay archivos, enviarlos primero a /api/HandleFiles
     if (Object.keys(fileData).length > 0) {
       const form = new FormData();
-      // Se envían todos los archivos; el tercer parámetro define el nombre del archivo (ya con prefijo)
       for (const key in fileData) {
         form.append(key, fileData[key], formData[key]);
       }
@@ -117,7 +113,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
         return;
       }
     }
-  
+
     // Enviar el JSON del formulario a /api/proxyJson en application/json
     try {
       const response = await axios.post(
@@ -136,8 +132,6 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
         error.response?.data?.error ||
         "Error enviando los datos. Se eliminarán los archivos guardados.";
       alert(errorMsg);
-  
-      // Si hay archivos guardados, intentar eliminarlos
       if (savedFiles) {
         try {
           await axios.delete("/api/HandleFiles", { data: { savedFiles } });
@@ -205,7 +199,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
                       type={field.childField!.type}
                       name={field.childField!.name}
                       placeholder={field.childField.placeholder || ""}
-                      required={field.childField.required}
+                      required={formData[field.fatherField.name] ? field.childField!.required : false}
                       value={formData[field.childField!.name] ?? ""}
                       onChange={(e) => handleChange(field.childField!.name, e.target.value)}
                       style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px" }}
@@ -214,7 +208,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
                     <textarea
                       name={field.childField!.name}
                       placeholder={field.childField.placeholder || ""}
-                      required={field.childField.required}
+                      required={formData[field.fatherField.name] ? field.childField!.required : false}
                       onChange={(e) => handleChange(field.childField!.name, e.target.value)}
                       style={{
                         width: "100%",
@@ -227,6 +221,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
                   ) : field.childField!.type === "select" ? (
                     <select
                       name={field.childField!.name}
+                      required={formData[field.fatherField.name] ? field.childField!.required : false}
                       onChange={(e) => handleChange(field.childField!.name, e.target.value)}
                       style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px" }}
                     >
@@ -240,12 +235,14 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
                     <input
                       type="checkbox"
                       name={field.childField!.name}
+                      required={formData[field.fatherField.name] ? field.childField!.required : false}
                       onChange={(e) => handleChange(field.childField!.name, e.target.checked)}
                     />
                   ) : field.childField!.type === "file" ? (
                     <input
                       type="file"
                       accept={field.childField.accept?.join(",")}
+                      required={formData[field.fatherField.name] ? field.childField!.required : false}
                       onChange={(e) => handleFileChange(field.childField!.name, e.target.files?.[0])}
                       style={{ marginTop: "8px", display: "block", width: "100%" }}
                     />
@@ -268,40 +265,66 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
                 gap: "24px",
               }}
             >
-              {field.eitherFields.map((eitherField) => (
-                <div key={eitherField.name} style={{ display: "flex", flexDirection: "column" }}>
-                  <label style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "6px" }}>
-                    {eitherField.label}
-                  </label>
-                  {eitherField.type === "ComboComponent" ? (
-                    <ComboInput
-                      apiUrl={eitherField.apiUrl || "/api/proxyJson"}
-                      defaultSelectedId={formData[eitherField.name]}
-                      onSelectionChange={(value) => handleChange(eitherField.name, value)}
-                    />
-                  ) : (
-                    <input
-                      type={eitherField.type === "number" ? "number" : eitherField.type}
-                      name={eitherField.name}
-                      placeholder={eitherField.placeholder || ""}
-                      required={eitherField.required}
-                      value={formData[eitherField.name] ?? ""}
-                      onChange={(e) =>
-                        handleChange(
-                          eitherField.name,
-                          eitherField.type === "number" ? parseFloat(e.target.value) : e.target.value
-                        )
-                      }
-                      style={{
-                        width: "100%",
-                        padding: "10px",
-                        border: "1px solid #ccc",
-                        borderRadius: "6px",
-                      }}
-                    />
-                  )}
-                </div>
-              ))}
+              {field.eitherFields.map((eitherField, index) => {
+                const otherIndex = (index + 1) % 2;
+                const otherFieldName = field.eitherFields[otherIndex].name;
+                const disabledInput = !!formData[otherFieldName];
+                return (
+                  <div key={eitherField.name} style={{ display: "flex", flexDirection: "column" }}>
+                    <label style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "6px" }}>
+                      {eitherField.label}
+                    </label>
+                    {eitherField.type === "ComboComponent" ? (
+                      <ComboInput
+                        apiUrl={eitherField.apiUrl || "/api/proxyJson"}
+                        defaultSelectedId={formData[eitherField.name]}
+                        onSelectionChange={(value) => handleChange(eitherField.name, value)}
+                        disabled={disabledInput}
+                      />
+                    ) : (
+                      <input
+                        type={eitherField.type === "number" ? "number" : eitherField.type}
+                        name={eitherField.name}
+                        placeholder={eitherField.placeholder || ""}
+                        required={eitherField.required}
+                        disabled={disabledInput}
+                        value={formData[eitherField.name] ?? ""}
+                        onKeyDown={
+                          eitherField.type === "number"
+                            ? (e) => {
+                                const allowedKeys = ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"];
+                                if (allowedKeys.includes(e.key)) return;
+                                if (e.key === ".") {
+                                  if (e.currentTarget.value.includes(".")) {
+                                    e.preventDefault();
+                                  }
+                                  return;
+                                }
+                                if (!/^\d$/.test(e.key)) {
+                                  e.preventDefault();
+                                }
+                              }
+                            : undefined
+                        }
+                        onChange={(e) => {
+                          if (eitherField.type === "number") {
+                            const sanitized = e.target.value.replace(/[^\d.]/g, "");
+                            handleChange(eitherField.name, sanitized === "" ? "" : parseFloat(e.target.value));
+                          } else {
+                            handleChange(eitherField.name, e.target.value);
+                          }
+                        }}
+                        style={{
+                          width: "100%",
+                          padding: "10px",
+                          border: "1px solid #ccc",
+                          borderRadius: "6px",
+                        }}
+                      />
+                    )}
+                  </div>
+                );
+              })}
             </div>
           );
         }
@@ -319,6 +342,23 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
                 placeholder={field.placeholder || ""}
                 required={field.required}
                 value={formData[field.name] ?? ""}
+                onKeyDown={
+                  field.type === "number"
+                    ? (e) => {
+                        const allowedKeys = ["Backspace", "Delete", "ArrowLeft", "ArrowRight", "Tab"];
+                        if (allowedKeys.includes(e.key)) return;
+                        if (e.key === ".") {
+                          if (e.currentTarget.value.includes(".")) {
+                            e.preventDefault();
+                          }
+                          return;
+                        }
+                        if (!/^\d$/.test(e.key)) {
+                          e.preventDefault();
+                        }
+                      }
+                    : undefined
+                }
                 onChange={(e) => {
                   if (field.type === "number") {
                     const sanitized = e.target.value.replace(/[^\d.]/g, "");
@@ -381,7 +421,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
                 <label style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "6px" }}>
                   {field.childField.label}
                 </label>
-                {/* Aquí puedes agregar la lógica de renderizado para childField si es necesario */}
+                {/* Lógica para renderizar childField si es necesario */}
               </div>
             )}
           </div>
