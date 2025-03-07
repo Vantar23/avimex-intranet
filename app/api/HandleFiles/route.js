@@ -22,19 +22,32 @@ export async function POST(req) {
       fs.mkdirSync(uploadDir, { recursive: true });
     }
 
+    // Verificar si alguno de los archivos ya existe
+    for (const { file } of filesToSave) {
+      const filePath = path.join(uploadDir, file.name);
+      if (fs.existsSync(filePath)) {
+        console.error(`❌ El archivo ${file.name} ya existe.`);
+        return NextResponse.json(
+          { error: `El archivo ${file.name} ya existe.` },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Si ninguno existe, proceder a guardar los archivos
     const savedFiles = {};
     for (const { field, file } of filesToSave) {
       // Convertir el archivo a Buffer
       const arrayBuffer = await file.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
 
-      // Definir la ruta donde se guardará el archivo (se usa file.name)
+      // Definir la ruta donde se guardará el archivo (usando file.name)
       const filePath = path.join(uploadDir, file.name);
 
       // Guardar el archivo en disco
       fs.writeFileSync(filePath, buffer);
       
-      // Almacenar la ruta relativa (o cualquier otro dato que desees retornar)
+      // Almacenar la ruta relativa del archivo guardado
       savedFiles[field] = `/uploads/${file.name}`;
     }
 

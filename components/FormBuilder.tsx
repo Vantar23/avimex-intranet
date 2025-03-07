@@ -69,12 +69,12 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-
+  
     // Limpiar espacios adicionales en el campo 'proveedorId'
     if (formData.proveedorId && typeof formData.proveedorId === "string") {
       formData.proveedorId = formData.proveedorId.trim();
     }
-
+  
     // Validar campos "either": se debe completar al menos uno de los dos campos
     if (formConfig) {
       for (const field of formConfig.fields) {
@@ -92,11 +92,12 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
         }
       }
     }
-
+  
     // Mostrar en consola el JSON del formulario
     console.log("JSON del formulario:", JSON.stringify(formData, null, 2));
-
-    // Si hay archivos, enviarlos primero a /api/SaveFile
+  
+    let savedFiles = null;
+    // Si hay archivos, enviarlos primero a /api/HandleFiles
     if (Object.keys(fileData).length > 0) {
       const form = new FormData();
       // Se envían todos los archivos; el tercer parámetro define el nombre del archivo (ya con prefijo)
@@ -104,37 +105,49 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
         form.append(key, fileData[key], formData[key]);
       }
       try {
-        const fileResponse = await axios.post("/api/SaveFile", form, {
+        const fileResponse = await axios.post("/api/HandleFiles", form, {
           headers: { "Content-Type": "multipart/form-data" },
         });
         console.log("Archivos guardados:", fileResponse.data);
-        // Opcional: actualizar formData con las rutas retornadas por SaveFile
-        // Object.assign(formData, fileResponse.data.savedFiles);
-      } catch (error) {
+        savedFiles = fileResponse.data.savedFiles;
+      } catch (error: any) {
         console.error("Error al guardar archivos:", error);
-        alert("Error al guardar archivos.");
+        const errorMsg = error.response?.data?.error || "Error al guardar archivos.";
+        alert(errorMsg);
         return;
       }
     }
-
+  
     // Enviar el JSON del formulario a /api/proxyJson en application/json
-    axios
-      .post(
+    try {
+      const response = await axios.post(
         "/api/proxyJson",
         {
           url: formConfig!.submitButton.action,
           body: formData,
         },
         { headers: { "Content-Type": "application/json" } }
-      )
-      .then((response) => {
-        console.log("Response from proxy:", response.data);
-        alert("Datos enviados correctamente.");
-      })
-      .catch((error) => {
-        console.error("Error en el envío:", error);
-        alert("Error enviando los datos.");
-      });
+      );
+      console.log("Response from proxy:", response.data);
+      alert("Datos enviados correctamente.");
+    } catch (error: any) {
+      console.error("Error en el envío de datos:", error);
+      const errorMsg =
+        error.response?.data?.error ||
+        "Error enviando los datos. Se eliminarán los archivos guardados.";
+      alert(errorMsg);
+  
+      // Si hay archivos guardados, intentar eliminarlos
+      if (savedFiles) {
+        try {
+          await axios.delete("/api/HandleFiles", { data: { savedFiles } });
+          console.log("Archivos eliminados por fallo en envío de JSON.");
+        } catch (delError) {
+          console.error("Error al eliminar archivos:", delError);
+        }
+      }
+      return;
+    }
   };
 
   if (!formConfig) return <p>Cargando formulario...</p>;
