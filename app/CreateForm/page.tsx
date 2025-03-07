@@ -248,14 +248,14 @@ const FormBuilder: React.FC = () => {
         }
       }
     }
-
+  
     const minimalPayload = {
       ModuloId: parseInt(moduloId),
       title: formTitle,
       description: formDescription,
     };
     const fullJson = generatedJson;
-
+  
     console.log("Payload a enviar:", { minimalPayload, fullJson });
     try {
       const response = await fetch("/api/formCreate", {
@@ -266,7 +266,10 @@ const FormBuilder: React.FC = () => {
       if (!response.ok) {
         throw new Error("Error al enviar el formulario");
       }
-      alert("Formulario enviado correctamente.");
+      const data = await response.json();
+      // Se asume que data tiene solo { id } y que ModuloId está en minimalPayload
+      alert(`Usa el componente de la siguiente manera:
+  <DynamicForm num="${data.id}" subcarpeta="${minimalPayload.ModuloId}" />`);
     } catch (error) {
       console.error("Error al enviar el formulario:", error);
       alert("Error al enviar el formulario.");

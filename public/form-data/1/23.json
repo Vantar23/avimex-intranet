@@ -1,0 +1,24 @@
+{
+  "ModuloId": 1,
+  "title": "Registro de Usuario",
+  "description": "Complete los siguientes campos para registrarse",
+  "fields": [
+    {
+      "label": "Nuevo Campo",
+      "name": "campo1",
+      "type": "text",
+      "required": false
+    },
+    {
+      "label": "Nuevo Campo",
+      "name": "campo2",
+      "type": "text",
+      "required": false
+    }
+  ],
+  "submitButton": {
+    "label": "Enviar",
+    "action": "/api/submit",
+    "method": "POST"
+  }
+}
