@@ -135,7 +135,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
         { headers: { "Content-Type": "application/json" } }
       );
       console.log("Response from proxy:", response.data);
-      alert("Datos enviados correctamente.");
+      //alert("Datos enviados correctamente.");
 
       // Refrescar la página después de un envío exitoso
       window.location.reload();
