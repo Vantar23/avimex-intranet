@@ -58,5 +58,3 @@ export async function POST(req) {
     return NextResponse.json({ error: "Error saving files" }, { status: 500 });
   }
 }
-
-//Test
