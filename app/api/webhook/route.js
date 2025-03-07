@@ -4,7 +4,7 @@ import { spawn } from 'child_process';
 const SECRET = 'mySuperSecretToken'; // Asegúrate de que este valor coincide con el configurado en GitHub
 
 async function verifySecret(req) {
-  const signature = req.headers.get('x-hub-signature-256'); // Firma enviada por GitHub
+  const signature = req.headers.get('x-hub-signature-256');
   const body = await req.text();
 
   if (!signature) {
@@ -34,7 +34,7 @@ export async function POST(req) {
     const parsedBody = JSON.parse(body);
     console.log('Webhook recibido:', parsedBody);
 
-    // Comando a ejecutar (usamos spawn para poder transmitir la salida en tiempo real)
+    // Comando a ejecutar; usamos spawn para transmitir salida en tiempo real
     const command = 'cmd';
     const args = [
       '/c',
@@ -44,15 +44,17 @@ export async function POST(req) {
     // Ejecutar el comando con spawn
     const proc = spawn(command, args, { shell: true });
 
-    // Crear un ReadableStream para enviar los logs en tiempo real (SSE)
+    // Crear un ReadableStream para enviar la salida en formato SSE
     const stream = new ReadableStream({
       start(controller) {
         proc.stdout.on('data', (data) => {
           controller.enqueue(`data: ${data.toString()}\n\n`);
         });
+
         proc.stderr.on('data', (data) => {
           controller.enqueue(`data: ERROR: ${data.toString()}\n\n`);
         });
+
         proc.on('close', (code) => {
           controller.enqueue(`data: Proceso finalizado con código: ${code}\n\n`);
           controller.close();
@@ -78,4 +80,4 @@ export async function GET() {
     '<h1>Webhook Server</h1><p>Servidor funcionando correctamente. Ruta POST: /api/webhook.</p>',
     { headers: { 'Content-Type': 'text/html' } }
   );
-}//TEST
+}
