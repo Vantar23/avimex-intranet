@@ -199,7 +199,11 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
                       type={field.childField!.type}
                       name={field.childField!.name}
                       placeholder={field.childField.placeholder || ""}
-                      required={formData[field.fatherField.name] ? field.childField!.required : false}
+                      required={
+                        formData[field.fatherField.name]
+                          ? field.childField!.required
+                          : false
+                      }
                       value={formData[field.childField!.name] ?? ""}
                       onChange={(e) => handleChange(field.childField!.name, e.target.value)}
                       style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px" }}
@@ -208,7 +212,11 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
                     <textarea
                       name={field.childField!.name}
                       placeholder={field.childField.placeholder || ""}
-                      required={formData[field.fatherField.name] ? field.childField!.required : false}
+                      required={
+                        formData[field.fatherField.name]
+                          ? field.childField!.required
+                          : false
+                      }
                       onChange={(e) => handleChange(field.childField!.name, e.target.value)}
                       style={{
                         width: "100%",
@@ -221,7 +229,11 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
                   ) : field.childField!.type === "select" ? (
                     <select
                       name={field.childField!.name}
-                      required={formData[field.fatherField.name] ? field.childField!.required : false}
+                      required={
+                        formData[field.fatherField.name]
+                          ? field.childField!.required
+                          : false
+                      }
                       onChange={(e) => handleChange(field.childField!.name, e.target.value)}
                       style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px" }}
                     >
@@ -235,14 +247,22 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
                     <input
                       type="checkbox"
                       name={field.childField!.name}
-                      required={formData[field.fatherField.name] ? field.childField!.required : false}
+                      required={
+                        formData[field.fatherField.name]
+                          ? field.childField!.required
+                          : false
+                      }
                       onChange={(e) => handleChange(field.childField!.name, e.target.checked)}
                     />
                   ) : field.childField!.type === "file" ? (
                     <input
                       type="file"
                       accept={field.childField.accept?.join(",")}
-                      required={formData[field.fatherField.name] ? field.childField!.required : false}
+                      required={
+                        formData[field.fatherField.name]
+                          ? field.childField!.required
+                          : false
+                      }
                       onChange={(e) => handleFileChange(field.childField!.name, e.target.files?.[0])}
                       style={{ marginTop: "8px", display: "block", width: "100%" }}
                     />
@@ -254,7 +274,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
         }
 
         // -- Caso "either" --
-        if (field.type === "either" && field.eitherFields) {
+        if (field.type === "either" && field.eitherFields && field.eitherFields.length >= 2) {
           return (
             <div
               key={`either-${field.eitherFields[0].name}-${field.eitherFields[1].name}`}
@@ -266,8 +286,8 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
               }}
             >
               {field.eitherFields.map((eitherField, index) => {
-                const otherIndex = (index + 1) % 2;
-                const otherFieldName = field.eitherFields[otherIndex].name;
+                const otherIndex = (index + 1) % field.eitherFields!.length;
+                const otherFieldName = field.eitherFields![otherIndex].name;
                 const disabledInput = !!formData[otherFieldName];
                 return (
                   <div key={eitherField.name} style={{ display: "flex", flexDirection: "column" }}>
@@ -421,7 +441,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
                 <label style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "6px" }}>
                   {field.childField.label}
                 </label>
-                {/* Lógica para renderizar childField si es necesario */}
+                {/* Aquí puedes agregar la lógica de renderizado para childField si es necesario */}
               </div>
             )}
           </div>
