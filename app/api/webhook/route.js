@@ -13,7 +13,9 @@ async function verifySecret(req) {
   }
 
   const crypto = await import('crypto');
-  const hash = `sha256=${crypto.createHmac('sha256', SECRET).update(body).digest('hex')}`;
+  const computedHash = `sha256=${crypto.createHmac('sha256', SECRET).update(body).digest('hex')}`;
+    console.log("Firma calculada:", computedHash);
+    console.log("Firma recibida:", signature);
 
   if (hash !== signature) {
     console.error('Firma no válida');
