@@ -6,7 +6,6 @@ const WebhookLogsPage = () => {
   return (
     <div>
       <h1>Logs de Webhook en Tiempo Real</h1>
-      <WebhookLogs />
     </div>
   );
 };
