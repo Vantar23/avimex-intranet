@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { exec } from 'child_process';
 
-const SECRET = 'SuperSecretPassword'; // Cambia esto por tu secreto configurado en GitHub
+const SECRET = '1234'; // Cambia esto por tu secreto configurado en GitHub
 
 async function verifySecret(req) {
   const signature = req.headers.get('x-hub-signature-256');
