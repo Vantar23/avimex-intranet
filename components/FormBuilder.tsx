@@ -67,12 +67,19 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-
+  
+    // Si ya se está enviando, no hacer nada
+    if ((handleSubmit as any).isSubmitting) {
+      return;
+    }
+    // Marcar como "en proceso"
+    (handleSubmit as any).isSubmitting = true;
+  
     // Limpiar espacios adicionales en el campo 'proveedorId'
     if (formData.proveedorId && typeof formData.proveedorId === "string") {
       formData.proveedorId = formData.proveedorId.trim();
     }
-
+  
     // Validar campos "either": se debe completar al menos uno de los dos subcampos
     if (formConfig) {
       for (const field of formConfig.fields) {
@@ -85,14 +92,16 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
             alert(
               `Por favor, complete al menos uno de los campos: ${firstField.label} o ${secondField.label}.`
             );
+            // Volver a permitir el envío
+            (handleSubmit as any).isSubmitting = false;
             return;
           }
         }
       }
     }
-
+  
     console.log("JSON del formulario:", JSON.stringify(formData, null, 2));
-
+  
     let savedFiles = null;
     // Si hay archivos, enviarlos primero a /api/HandleFiles
     if (Object.keys(fileData).length > 0) {
@@ -108,12 +117,15 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
         savedFiles = fileResponse.data.savedFiles;
       } catch (error: any) {
         console.error("Error al guardar archivos:", error);
-        const errorMsg = error.response?.data?.error || "Error al guardar archivos.";
+        const errorMsg =
+          error.response?.data?.error || "Error al guardar archivos.";
         alert(errorMsg);
+        // Volver a permitir el envío
+        (handleSubmit as any).isSubmitting = false;
         return;
       }
     }
-
+  
     // Enviar el JSON del formulario a /api/proxyJson en application/json
     try {
       const response = await axios.post(
@@ -126,6 +138,9 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
       );
       console.log("Response from proxy:", response.data);
       alert("Datos enviados correctamente.");
+  
+      // Refrescar la página después del envío exitoso
+      window.location.reload();
     } catch (error: any) {
       console.error("Error en el envío de datos:", error);
       const errorMsg =
@@ -140,6 +155,8 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
           console.error("Error al eliminar archivos:", delError);
         }
       }
+      // Volver a permitir el envío
+      (handleSubmit as any).isSubmitting = false;
       return;
     }
   };
