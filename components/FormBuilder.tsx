@@ -14,7 +14,11 @@ interface FormField {
   component?: string;
   apiUrl?: string;
   validationApi?: { url: string };
-  childField?: FormField; // <-- Nuevo: campo anidado
+  // Para "nest":
+  fatherField?: FormField;
+  childField?: FormField;
+  // Para "either":
+  eitherFields?: FormField[];
 }
 
 interface FormConfig {
@@ -27,39 +31,6 @@ interface FormConfig {
 type DynamicFormProps = {
   num: string;
   subcarpeta: string;
-};
-
-const ComboComponent: React.FC<{
-  apiUrl: string;
-  propertyName: string;
-  defaultSelectedId?: string;
-  onSelectionChange: (value: string) => void;
-  resetTrigger?: any;
-}> = ({ apiUrl, propertyName, defaultSelectedId, onSelectionChange, resetTrigger }) => {
-  const [options, setOptions] = useState<{ label: string; value: string }[]>([]);
-  const [selected, setSelected] = useState<string | undefined>(defaultSelectedId);
-
-  useEffect(() => {
-    axios.get(apiUrl)
-      .then((response) => setOptions(response.data[propertyName] || []))
-      .catch((error) => console.error("Error fetching combo options:", error));
-  }, [apiUrl, propertyName, resetTrigger]);
-
-  return (
-    <select 
-      value={selected} 
-      onChange={(e) => { 
-        setSelected(e.target.value); 
-        onSelectionChange(e.target.value); 
-      }} 
-      style={{ width: "100%", padding: "8px", border: "1px solid #ccc", borderRadius: "4px" }}
-    >
-      <option value="">Seleccione...</option>
-      {options.map((option) => (
-        <option key={option.value} value={option.value}>{option.label}</option>
-      ))}
-    </select>
-  );
 };
 
 const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
@@ -77,223 +48,308 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
     setFormData({ ...formData, [name]: value });
   };
 
-  // Para inputs de tipo file, se conserva solo el nombre del archivo en el JSON
+  // Para inputs de tipo file, se guarda el nombre con un prefijo de la hora (HHmmss)
   const handleFileChange = (name: string, file: File | undefined) => {
     if (file) {
-      handleChange(name, file.name);
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, "0");
+      const minutes = String(now.getMinutes()).padStart(2, "0");
+      const seconds = String(now.getSeconds()).padStart(2, "0");
+      const timeStamp = `${hours}${minutes}${seconds}`;
+      const newFileName = `${timeStamp}_${file.name}`;
+      handleChange(name, newFileName);
     }
   };
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
+  
+    // Limpiar espacios adicionales en el campo 'proveedorId'
+    if (formData.proveedorId && typeof formData.proveedorId === "string") {
+      formData.proveedorId = formData.proveedorId.trim();
+    }
+  
+    // Validar campos "either": se debe completar al menos uno de los dos campos
+    if (formConfig) {
+      for (const field of formConfig.fields) {
+        if (field.type === "either" && field.eitherFields) {
+          const [firstField, secondField] = field.eitherFields;
+          if (
+            (!formData[firstField.name] || formData[firstField.name] === "") &&
+            (!formData[secondField.name] || formData[secondField.name] === "")
+          ) {
+            alert(
+              `Por favor, complete al menos uno de los campos: ${firstField.label} o ${secondField.label}.`
+            );
+            return;
+          }
+        }
+      }
+    }
+  
+    // Mostrar el JSON del formulario en consola
     console.log("JSON del formulario:", JSON.stringify(formData, null, 2));
-    alert("Revisa la consola para ver el JSON.");
+  
+    // Enviar la petición con application/json a /api/proxyJson
+    axios
+      .post(
+        "/api/proxyJson",
+        {
+          url: formConfig!.submitButton.action,
+          body: formData,
+        },
+        { headers: { "Content-Type": "application/json" } }
+      )
+      .then((response) => {
+        console.log("Response from proxy:", response.data);
+        alert("Datos enviados correctamente.");
+      })
+      .catch((error) => {
+        console.error("Error en el envío:", error);
+        alert("Error enviando los datos.");
+      });
   };
 
   if (!formConfig) return <p>Cargando formulario...</p>;
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "24px" }}>
-      <h2 style={{ gridColumn: "span 2", fontSize: "24px", fontWeight: "bold", marginBottom: "12px" }}>
+    <form
+      onSubmit={handleSubmit}
+      style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: "24px" }}
+    >
+      <h2
+        style={{
+          gridColumn: "span 2",
+          fontSize: "24px",
+          fontWeight: "bold",
+          marginBottom: "12px",
+        }}
+      >
         {formConfig.title}
       </h2>
       <p style={{ gridColumn: "span 2", fontSize: "16px", marginBottom: "20px" }}>
         {formConfig.description}
       </p>
 
-      {formConfig.fields.map((field) => (
-        <div key={field.name} style={{ display: "flex", flexDirection: "column" }}>
-          <label style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "6px" }}>
-            {field.label}
-          </label>
-          {field.type === "text" ||
-           field.type === "email" ||
-           field.type === "password" ||
-           field.type === "number" ||
-           field.type === "date" ? (
-            <input
-              type={field.type}
-              name={field.name}
-              placeholder={field.placeholder || ""}
-              required={field.required}
-              value={formData[field.name] !== undefined ? formData[field.name] : ""}
-              {...(field.type === "number" && {
-                inputMode: "numeric",
-                pattern: "[0-9.]*"
-              })}
-              onKeyDown={(e) => {
-                if (field.type === "number") {
-                  const allowedKeys = [
-                    "Backspace",
-                    "ArrowLeft",
-                    "ArrowRight",
-                    "Delete",
-                    "Tab",
-                    "Home",
-                    "End",
-                    "Enter"
-                  ];
-                  if (e.key === ".") {
-                    if (e.currentTarget.value.includes(".")) {
-                      e.preventDefault();
-                    }
-                    return;
-                  }
-                  if (
-                    !allowedKeys.includes(e.key) &&
-                    !/^[0-9]$/.test(e.key)
-                  ) {
-                    e.preventDefault();
-                  }
-                }
-              }}
-              onChange={(e) => {
-                if (field.type === "number") {
-                  const sanitized = e.target.value.replace(/[^\d.]/g, "");
-                  handleChange(field.name, sanitized === "" ? "" : parseFloat(sanitized));
-                } else {
-                  handleChange(field.name, e.target.value);
-                }
-              }}
-              style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px" }}
-            />
-          ) : field.type === "textarea" ? (
-            <textarea
-              name={field.name}
-              placeholder={field.placeholder || ""}
-              required={field.required}
-              onChange={(e) => handleChange(field.name, e.target.value)}
-              style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px", minHeight: "100px" }}
-            />
-          ) : field.type === "select" ? (
-            <select 
-              onChange={(e) => handleChange(field.name, e.target.value)}
-              style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px" }}
-            >
-              {field.options?.map((option) => (
-                <option key={option.value} value={option.value}>{option.label}</option>
-              ))}
-            </select>
-          ) : field.type === "checkbox" ? (
-            <input
-              type="checkbox"
-              onChange={(e) => handleChange(field.name, e.target.checked)}
-            />
-          ) : field.type === "file" ? (
-            <input
-              type="file"
-              accept={field.accept?.join(",")}
-              onChange={(e) => handleFileChange(field.name, e.target.files?.[0])}
-              style={{ marginTop: "8px", display: "block", width: "100%" }}
-            />
-          ) : field.type === "combo" && field.component === "ComboComponent" ? (
-            <ComboInput 
-              apiUrl={field.apiUrl || "/api/proxyJson"} 
-              defaultSelectedId={formData[field.name]} 
-              onSelectionChange={(value) => handleChange(field.name, value)} 
-            />
-          ) : null}
-
-          {/* Renderizado del campo anidado si se definió y el padre tiene valor */}
-          {field.childField && formData[field.name] && (
-            <div style={{ marginLeft: "20px", marginTop: "10px" }}>
+      {formConfig.fields.map((field) => {
+        // -- Caso "nest" --
+        if (field.type === "nest" && field.fatherField && field.childField) {
+          return (
+            <div key={field.fatherField.name} style={{ display: "flex", flexDirection: "column" }}>
               <label style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "6px" }}>
-                {field.childField.label}
+                {field.fatherField.label}
               </label>
-              {field.childField.type === "text" ||
-               field.childField.type === "email" ||
-               field.childField.type === "password" ||
-               field.childField.type === "number" ||
-               field.childField.type === "date" ? (
-                <input
-                  type={field.childField.type}
-                  name={field.childField.name}
-                  placeholder={field.childField.placeholder || ""}
-                  required={field.childField.required}
-                  value={formData[field.childField.name] !== undefined ? formData[field.childField.name] : ""}
-                  {...(field.childField.type === "number" && {
-                    inputMode: "numeric",
-                    pattern: "[0-9.]*"
-                  })}
-                  onKeyDown={(e) => {
-                    if (field.childField?.type === "number") {
-                      const allowedKeys = [
-                        "Backspace",
-                        "ArrowLeft",
-                        "ArrowRight",
-                        "Delete",
-                        "Tab",
-                        "Home",
-                        "End",
-                        "Enter"
-                      ];
-                      if (e.key === ".") {
-                        if (e.currentTarget.value.includes(".")) {
-                          e.preventDefault();
-                        }
-                        return;
-                      }
-                      if (
-                        !allowedKeys.includes(e.key) &&
-                        !/^[0-9]$/.test(e.key)
-                      ) {
-                        e.preventDefault();
-                      }
-                    }
+              <input
+                type={field.fatherField.type}
+                name={field.fatherField.name}
+                placeholder={field.fatherField.placeholder || ""}
+                required={field.fatherField.required}
+                value={formData[field.fatherField.name] ?? ""}
+                onChange={(e) => handleChange(field.fatherField!.name, e.target.value)}
+                style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px" }}
+              />
+              {formData[field.fatherField.name] && (
+                <div
+                  style={{
+                    marginLeft: "20px",
+                    marginTop: "10px",
+                    display: "flex",
+                    flexDirection: "column",
                   }}
-                  onChange={(e) => {
-                    if (field.childField?.type === "number") {
-                      const sanitized = e.target.value.replace(/[^\d.]/g, "");
-                      handleChange(field.childField!.name, sanitized === "" ? "" : parseFloat(sanitized));
-                    } else {
-                      handleChange(field.childField!.name, e.target.value);
-                    }
-                  }}
-                  style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px" }}
-                />
-              ) : field.childField.type === "textarea" ? (
-                <textarea
-                  name={field.childField.name}
-                  placeholder={field.childField.placeholder || ""}
-                  required={field.childField.required}
-                  onChange={(e) => handleChange(field.childField!.name, e.target.value)}
-                  style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px", minHeight: "100px" }}
-                />
-              ) : field.childField.type === "select" ? (
-                <select 
-                  onChange={(e) => handleChange(field.childField!.name, e.target.value)}
-                  style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px" }}
                 >
-                  {field.childField.options?.map((option) => (
-                    <option key={option.value} value={option.value}>{option.label}</option>
-                  ))}
-                </select>
-              ) : field.childField.type === "checkbox" ? (
-                <input
-                  type="checkbox"
-                  onChange={(e) => handleChange(field.childField!.name, e.target.checked)}
-                />
-              ) : field.childField.type === "file" ? (
-                <input
-                  type="file"
-                  accept={field.childField.accept?.join(",")}
-                  onChange={(e) => handleFileChange(field.childField!.name, e.target.files?.[0])}
-                  style={{ marginTop: "8px", display: "block", width: "100%" }}
-                />
-              ) : field.childField.type === "combo" && field.childField.component === "ComboComponent" ? (
-                <ComboInput 
-                  apiUrl={field.childField.apiUrl || "/api/proxyJson"} 
-                  defaultSelectedId={formData[field.childField.name]} 
-                  onSelectionChange={(value) => handleChange(field.childField!.name, value)} 
-                />
-              ) : null}
+                  <label style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "6px" }}>
+                    {field.childField.label}
+                  </label>
+                  {["text", "email", "password", "number", "date"].includes(field.childField!.type) ? (
+                    <input
+                      type={field.childField!.type}
+                      name={field.childField!.name}
+                      placeholder={field.childField.placeholder || ""}
+                      required={field.childField.required}
+                      value={formData[field.childField!.name] ?? ""}
+                      onChange={(e) => handleChange(field.childField!.name, e.target.value)}
+                      style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px" }}
+                    />
+                  ) : field.childField!.type === "textarea" ? (
+                    <textarea
+                      name={field.childField!.name}
+                      placeholder={field.childField.placeholder || ""}
+                      required={field.childField.required}
+                      onChange={(e) => handleChange(field.childField!.name, e.target.value)}
+                      style={{
+                        width: "100%",
+                        padding: "10px",
+                        border: "1px solid #ccc",
+                        borderRadius: "6px",
+                        minHeight: "100px",
+                      }}
+                    />
+                  ) : field.childField!.type === "select" ? (
+                    <select
+                      name={field.childField!.name}
+                      onChange={(e) => handleChange(field.childField!.name, e.target.value)}
+                      style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px" }}
+                    >
+                      {field.childField.options?.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  ) : field.childField!.type === "checkbox" ? (
+                    <input
+                      type="checkbox"
+                      name={field.childField!.name}
+                      onChange={(e) => handleChange(field.childField!.name, e.target.checked)}
+                    />
+                  ) : field.childField!.type === "file" ? (
+                    <input
+                      type="file"
+                      accept={field.childField.accept?.join(",")}
+                      onChange={(e) => handleFileChange(field.childField!.name, e.target.files?.[0])}
+                      style={{ marginTop: "8px", display: "block", width: "100%" }}
+                    />
+                  ) : null}
+                </div>
+              )}
             </div>
-          )}
-        </div>
-      ))}
+          );
+        }
 
-      <button 
-        type="submit" 
+        // -- Caso "either" --
+        if (field.type === "either" && field.eitherFields) {
+          return (
+            <div
+              key={`either-${field.eitherFields[0].name}-${field.eitherFields[1].name}`}
+              style={{
+                gridColumn: "span 2",
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "24px",
+              }}
+            >
+              {field.eitherFields.map((eitherField) => (
+                <div key={eitherField.name} style={{ display: "flex", flexDirection: "column" }}>
+                  <label style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "6px" }}>
+                    {eitherField.label}
+                  </label>
+                  {eitherField.type === "ComboComponent" ? (
+                    <ComboInput
+                      apiUrl={eitherField.apiUrl || "/api/proxyJson"}
+                      defaultSelectedId={formData[eitherField.name]}
+                      onSelectionChange={(value) => handleChange(eitherField.name, value)}
+                    />
+                  ) : (
+                    <input
+                      type={eitherField.type === "number" ? "number" : eitherField.type}
+                      name={eitherField.name}
+                      placeholder={eitherField.placeholder || ""}
+                      required={eitherField.required}
+                      value={formData[eitherField.name] ?? ""}
+                      onChange={(e) =>
+                        handleChange(
+                          eitherField.name,
+                          eitherField.type === "number" ? parseFloat(e.target.value) : e.target.value
+                        )
+                      }
+                      style={{
+                        width: "100%",
+                        padding: "10px",
+                        border: "1px solid #ccc",
+                        borderRadius: "6px",
+                      }}
+                    />
+                  )}
+                </div>
+              ))}
+            </div>
+          );
+        }
+
+        // -- Resto de campos estándar --
+        return (
+          <div key={field.name} style={{ display: "flex", flexDirection: "column" }}>
+            <label style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "6px" }}>
+              {field.label}
+            </label>
+            {["text", "email", "password", "number", "date"].includes(field.type) ? (
+              <input
+                type={field.type}
+                name={field.name}
+                placeholder={field.placeholder || ""}
+                required={field.required}
+                value={formData[field.name] ?? ""}
+                onChange={(e) => {
+                  if (field.type === "number") {
+                    const sanitized = e.target.value.replace(/[^\d.]/g, "");
+                    handleChange(field.name, sanitized === "" ? "" : parseFloat(e.target.value));
+                  } else {
+                    handleChange(field.name, e.target.value);
+                  }
+                }}
+                style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px" }}
+              />
+            ) : field.type === "textarea" ? (
+              <textarea
+                name={field.name}
+                placeholder={field.placeholder || ""}
+                required={field.required}
+                onChange={(e) => handleChange(field.name, e.target.value)}
+                style={{
+                  width: "100%",
+                  padding: "10px",
+                  border: "1px solid #ccc",
+                  borderRadius: "6px",
+                  minHeight: "100px",
+                }}
+              />
+            ) : field.type === "select" ? (
+              <select
+                name={field.name}
+                onChange={(e) => handleChange(field.name, e.target.value)}
+                style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px" }}
+              >
+                {field.options?.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            ) : field.type === "checkbox" ? (
+              <input
+                type="checkbox"
+                name={field.name}
+                onChange={(e) => handleChange(field.name, e.target.checked)}
+              />
+            ) : field.type === "file" ? (
+              <input
+                type="file"
+                accept={field.accept?.join(",")}
+                onChange={(e) => handleFileChange(field.name, e.target.files?.[0])}
+                style={{ marginTop: "8px", display: "block", width: "100%" }}
+              />
+            ) : field.type === "combo" && field.component === "ComboComponent" ? (
+              <ComboInput
+                apiUrl={field.apiUrl || "/api/proxyJson"}
+                defaultSelectedId={formData[field.name]}
+                onSelectionChange={(value) => handleChange(field.name, value)}
+              />
+            ) : null}
+
+            {field.childField && formData[field.name] && (
+              <div style={{ marginLeft: "20px", marginTop: "10px" }}>
+                <label style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "6px" }}>
+                  {field.childField.label}
+                </label>
+                {/* Lógica para renderizar childField si es necesario */}
+              </div>
+            )}
+          </div>
+        );
+      })}
+
+      <button
+        type="submit"
         style={{
           gridColumn: "span 2",
           margin: "0 auto",
@@ -304,7 +360,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
           border: "none",
           borderRadius: "6px",
           fontSize: "16px",
-          cursor: "pointer"
+          cursor: "pointer",
         }}
       >
         {formConfig.submitButton.label}

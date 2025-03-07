@@ -1,0 +1,84 @@
+{
+  "ModuloId": 1,
+  "title": "Requisiciones",
+  "description": "Complete los siguientes campos",
+  "fields": [
+    {
+      "label": "Codigo",
+      "name": "codigo",
+      "type": "text",
+      "required": true
+    },
+    {
+      "label": "Cantidad",
+      "name": "cantidad",
+      "type": "number",
+      "required": true
+    },
+    {
+      "type": "nest",
+      "fatherField": {
+        "label": "No. Factura",
+        "name": "noFactura",
+        "type": "text",
+        "required": false
+      },
+      "childField": {
+        "label": "Archivo de Factura",
+        "name": "ArchFact",
+        "type": "file",
+        "required": false
+      }
+    },
+    {
+      "type": "nest",
+      "fatherField": {
+        "label": "No. Cotizacion",
+        "name": "noCotizacion",
+        "type": "text",
+        "required": false
+      },
+      "childField": {
+        "label": "Archivo de Cotización",
+        "name": "ArchCoti",
+        "type": "file",
+        "required": false
+      }
+    },
+    {
+      "label": "Producto",
+      "name": "producto",
+      "type": "text",
+      "required": true
+    },
+    {
+      "type": "either",
+      "eitherFields": [
+        {
+          "label": "Proveedor",
+          "name": "proveedorId",
+          "type": "ComboComponent",
+          "required": false,
+          "apiUrl": "http://avimexintranet.com/backend/api/catalogos"
+        },
+        {
+          "label": "Sugerencia de Proveedor",
+          "name": "otroProveedor",
+          "type": "text",
+          "required": false
+        }
+      ]
+    },
+    {
+      "label": "Observaciones",
+      "name": "observaciones",
+      "type": "textarea",
+      "required": false
+    }
+  ],
+  "submitButton": {
+    "label": "Enviar",
+    "action": "http://avimexintranet.com/backend/api/compras",
+    "method": "POST"
+  }
+}
