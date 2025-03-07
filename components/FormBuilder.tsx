@@ -36,6 +36,8 @@ type DynamicFormProps = {
 const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
   const [formConfig, setFormConfig] = useState<FormConfig | null>(null);
   const [formData, setFormData] = useState<{ [key: string]: any }>({});
+  // Estado para almacenar los objetos File de los campos file
+  const [fileData, setFileData] = useState<{ [key: string]: File }>({});
 
   useEffect(() => {
     axios
@@ -48,9 +50,13 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
     setFormData({ ...formData, [name]: value });
   };
 
-  // Para inputs de tipo file, se guarda el nombre con un prefijo de la hora (HHmmss)
+  // Para inputs de tipo file, se almacena el objeto File en fileData
+  // y se guarda en el JSON solo el nombre con prefijo HHmmss.
   const handleFileChange = (name: string, file: File | undefined) => {
     if (file) {
+      // Guardar el objeto File para enviarlo luego a /api/SaveFile
+      setFileData((prev) => ({ ...prev, [name]: file }));
+      // Generar el nuevo nombre con prefijo de hora (HHmmss)
       const now = new Date();
       const hours = String(now.getHours()).padStart(2, "0");
       const minutes = String(now.getMinutes()).padStart(2, "0");
@@ -61,14 +67,14 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
     }
   };
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-  
+
     // Limpiar espacios adicionales en el campo 'proveedorId'
     if (formData.proveedorId && typeof formData.proveedorId === "string") {
       formData.proveedorId = formData.proveedorId.trim();
     }
-  
+
     // Validar campos "either": se debe completar al menos uno de los dos campos
     if (formConfig) {
       for (const field of formConfig.fields) {
@@ -86,11 +92,32 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
         }
       }
     }
-  
-    // Mostrar el JSON del formulario en consola
+
+    // Mostrar en consola el JSON del formulario
     console.log("JSON del formulario:", JSON.stringify(formData, null, 2));
-  
-    // Enviar la petición con application/json a /api/proxyJson
+
+    // Si hay archivos, enviarlos primero a /api/SaveFile
+    if (Object.keys(fileData).length > 0) {
+      const form = new FormData();
+      // Se envían todos los archivos; el tercer parámetro define el nombre del archivo (ya con prefijo)
+      for (const key in fileData) {
+        form.append(key, fileData[key], formData[key]);
+      }
+      try {
+        const fileResponse = await axios.post("/api/SaveFile", form, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        console.log("Archivos guardados:", fileResponse.data);
+        // Opcional: actualizar formData con las rutas retornadas por SaveFile
+        // Object.assign(formData, fileResponse.data.savedFiles);
+      } catch (error) {
+        console.error("Error al guardar archivos:", error);
+        alert("Error al guardar archivos.");
+        return;
+      }
+    }
+
+    // Enviar el JSON del formulario a /api/proxyJson en application/json
     axios
       .post(
         "/api/proxyJson",
@@ -341,7 +368,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
                 <label style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "6px" }}>
                   {field.childField.label}
                 </label>
-                {/* Lógica para renderizar childField si es necesario */}
+                {/* Aquí puedes agregar la lógica de renderizado para childField si es necesario */}
               </div>
             )}
           </div>
