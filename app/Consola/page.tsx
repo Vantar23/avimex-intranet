@@ -11,4 +11,4 @@ const WebhookLogsPage = () => {
   );
 };
 
-export default WebhookLogsPage;
+export default WebhookLogsPage; //
