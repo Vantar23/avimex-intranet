@@ -22,7 +22,7 @@ export async function POST(req) {
     // 2. Configurar formidable
     const form = new formidable.IncomingForm({
       multiples: true,               // Permite subir múltiples archivos en el mismo field
-      maxFileSize: 50 * 1024 * 1024, // Ejemplo: límite de 50 MB
+      maxFileSize: 150 * 1024 * 1024, // Ejemplo: límite de 50 MB
     });
 
     // 3. Parsear la request con formidable
