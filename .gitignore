@@ -35,13 +35,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-<<<<<<< HEAD
 # Ignorar la carpeta public/uploads
 /public/uploads
 package-lock.json
 
-.gitignore
-=======
-# Ignorar la carpeta public/uploads tt
-/public/uploads
->>>>>>> 1a24440 (k)
+.gitignoreG
