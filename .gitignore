@@ -38,5 +38,3 @@ next-env.d.ts
 # Ignorar la carpeta public/uploads
 /public/uploads
 package-lock.json
-
-.gitignore
