@@ -13,7 +13,13 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
-  return NextResponse.next();
+  // 🔥 Agrega el token en el header con el nombre "token"
+  const requestHeaders = new Headers(req.headers);
+  if (token) {
+    requestHeaders.set("token", token);
+  }
+
+  return NextResponse.next({ headers: requestHeaders });
 }
 
 export const config = {
