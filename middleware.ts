@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export async function middleware(req: NextRequest) {
+export function middleware(req: NextRequest) {
   const token = req.cookies.get("session")?.value;
 
   console.log("🟢 Token detectado en middleware:", token || "Ninguno");
@@ -19,17 +19,9 @@ export async function middleware(req: NextRequest) {
     requestHeaders.set("Authorization", `Bearer ${token}`);
   }
 
-  const response = NextResponse.next({ headers: requestHeaders });
-
-  // 🔥 Si la respuesta del servidor es 401 o contiene "Unexpected token", borra las cookies y redirige al login
-  if (response.status === 401 || response.statusText.includes("Unexpected token")) {
-    response.cookies.delete("session");
-    return NextResponse.redirect(new URL("/", req.url));
-  }
-
-  return response;
+  return NextResponse.next({ headers: requestHeaders });
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/perfil/:path*", "/configuracion/:path*", "/api/proxyJson/:path*"],
+  matcher: ["/dashboard/:path*", "/perfil/:path*", "/configuracion/:path*"],
 };
