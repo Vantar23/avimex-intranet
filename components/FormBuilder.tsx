@@ -104,7 +104,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
         form.append(key, fileData[key], formData[key]);
       }
       try {
-        const fileResponse = await axios.post("/api/SaveFile", form, {
+        const fileResponse = await axios.post("/api/dashboard/SaveFile", form, {
           headers: { "Content-Type": "multipart/form-data" },
         });
         console.log("Archivos guardados:", fileResponse.data);

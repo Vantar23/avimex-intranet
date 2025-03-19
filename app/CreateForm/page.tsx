@@ -258,7 +258,7 @@ const FormBuilder: React.FC = () => {
   
     console.log("Payload a enviar:", { minimalPayload, fullJson });
     try {
-      const response = await fetch("/api/formCreate", {
+      const response = await fetch("/api/dashboard/CreateForm", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ minimalPayload, fullJson }),

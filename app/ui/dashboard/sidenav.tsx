@@ -19,7 +19,7 @@ export default function SideNav() {
 
   const handleLogout = async () => {
     try {
-      const response = await fetch("/api/logout", { method: "POST" });
+      const response = await fetch("/api/auth/logout", { method: "POST" });
 
       if (response.ok) {
         sessionStorage.removeItem("session");

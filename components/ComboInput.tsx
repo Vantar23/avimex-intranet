@@ -25,33 +25,30 @@ const ComboInput: React.FC<ComboInputProps> = ({
   const [selectedOption, setSelectedOption] = useState<{ value: number; label: string } | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  // Evitar renderizado hasta que el componente se haya montado para prevenir problemas de hidratación
   useEffect(() => {
     setMounted(true);
   }, []);
 
   useEffect(() => {
     const processData = (data: any[]) => {
-      if (data.length === 0) {
-        console.error("⚠️ No se recibieron datos para ComboInput.");
+      if (!Array.isArray(data) || data.length === 0) {
+        console.warn("⚠️ No se recibieron datos válidos para ComboInput.");
         return;
       }
 
-      // Detectar automáticamente los nombres de los campos
       const firstItem = data[0];
       const keys = Object.keys(firstItem);
 
       if (keys.length < 2) {
-        console.error("❌ Estructura de datos inválida. Se requieren al menos dos campos.");
+        console.warn("❌ Estructura de datos inválida. Se requieren al menos dos campos.");
         return;
       }
 
-      const idField = keys[0]; // Primer campo como ID
-      const labelField = keys[1]; // Segundo campo como descripción
+      const idField = keys[0];
+      const labelField = keys[1];
 
       console.log(`🔍 Detectados campos: ID="${idField}", Label="${labelField}"`);
 
-      // Mapear los datos para react-select
       setOptions(
         data.map(item => ({
           value: item[idField],
@@ -68,16 +65,20 @@ const ComboInput: React.FC<ComboInputProps> = ({
           setIsLoading(true);
           console.log("🔹 Consultando API:", apiUrl);
 
-          const response = await axios.get(`/api/proxyJson?url=${encodeURIComponent(apiUrl)}`);
+          const response = await axios.get(`/api/dashboard/proxyJson?url=${encodeURIComponent(apiUrl)}`);
           console.log("✅ Respuesta de la API:", response.data);
 
           if (response.status === 200 && Array.isArray(response.data)) {
             processData(response.data);
           } else {
-            console.error("⚠️ Respuesta de la API no válida:", response.data);
+            console.warn("⚠️ Respuesta de la API no válida:", response.data);
           }
-        } catch (error) {
-          console.error("❌ Error al obtener datos de la API:", error);
+        } catch (error: any) {
+          if (error.response) {
+            console.warn(`❌ Error en la API (status ${error.response.status}):`, error.response.data);
+          } else {
+            console.warn("❌ Error al obtener datos de la API:", error.message);
+          }
         } finally {
           setIsLoading(false);
         }
@@ -87,7 +88,6 @@ const ComboInput: React.FC<ComboInputProps> = ({
     }
   }, [apiUrl, localData]);
 
-  // Actualizar opción seleccionada según el valor por defecto o trigger de reinicio
   useEffect(() => {
     if (defaultSelectedId && options.length > 0) {
       const preselected = options.find(opt => opt.value === defaultSelectedId) || null;
@@ -104,7 +104,6 @@ const ComboInput: React.FC<ComboInputProps> = ({
     }
   };
 
-  // Mientras el componente no esté montado, renderizar un placeholder
   if (!mounted) {
     return <div className={className}>Cargando...</div>;
   }
@@ -124,7 +123,6 @@ const ComboInput: React.FC<ComboInputProps> = ({
             ...provided,
             color: "#999",
           }),
-          // Puedes agregar más secciones para personalizar otros elementos, por ejemplo:
           option: (provided, state) => ({
             ...provided,
             backgroundColor: state.isFocused ? "#eee" : "white",
@@ -136,6 +134,7 @@ const ComboInput: React.FC<ComboInputProps> = ({
         onChange={handleChange}
         isLoading={isLoading}
         placeholder={isLoading ? "Cargando opciones..." : "Selecciona una opción..."}
+        noOptionsMessage={() => "No hay opciones disponibles"}
       />
     </div>
   );
