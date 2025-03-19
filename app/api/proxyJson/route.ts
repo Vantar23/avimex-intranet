@@ -44,6 +44,15 @@ async function handleRequest(req: Request, method: string) {
       body: body ? JSON.stringify(body) : undefined,
     };
 
+    // Extraer el token de las cookies y agregarlo al encabezado Authorization
+    const token = req.headers.get("cookie")?.match(/session=([^;]+)/)?.[1];
+    if (token) {
+      options.headers = {
+        ...options.headers,
+        "Authorization": `Bearer ${token}`,
+      };
+    }
+
     const response = await fetch(url, options);
     const data = await response.json();
 
