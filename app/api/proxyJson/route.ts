@@ -58,9 +58,28 @@ async function handleRequest(req: Request, method: string) {
 
     console.log("✅ Respuesta recibida:", data);
 
+    // 🔥 Manejar redirecciones (código de estado 307)
+    if (response.status === 307) {
+      const redirectUrl = response.headers.get("Location");
+      if (redirectUrl) {
+        return NextResponse.redirect(redirectUrl);
+      }
+    }
+
+    // 🔥 Si la respuesta del servidor es 401, redirige al login
+    if (response.status === 401) {
+      return NextResponse.redirect(new URL("/", req.url));
+    }
+
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
     console.error("❌ Error en el proxy:", error);
-    return NextResponse.json({ error: "Error processing request" }, { status: 500 });
+
+    // 🔥 Si el error contiene "Unexpected token", borra las cookies y redirige al login
+    if (error instanceof Error && error.message.includes("Unexpected token")) {
+      const nextResponse = NextResponse.redirect(new URL("/", req.url));
+      nextResponse.cookies.delete("session");
+      return nextResponse;
+    }
   }
 }

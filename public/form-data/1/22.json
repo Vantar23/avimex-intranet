@@ -59,7 +59,11 @@
           "name": "proveedorId",
           "type": "ComboComponent",
           "required": false,
+<<<<<<< HEAD
           "apiUrl": "http://avimexintranet.com/backend/api/catalogos"
+=======
+          "apiUrl": "http://avimexintranet.com/backend/api/Catalogos"
+>>>>>>> develop
         },
         {
           "label": "Sugerencia de Proveedor",
