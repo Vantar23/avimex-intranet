@@ -23,11 +23,14 @@ export async function POST(req) {
     }
 
     const data = await response.json();
-    if (!Array.isArray(data) || data.length === 0 || !data[0].tok) {
+    console.log("Respuesta del backend:", data);
+
+    // 🔥 Ajusta esto según la estructura real del JSON que recibes
+    const sessionToken = data?.token || (Array.isArray(data) && data[0]?.token);
+
+    if (!sessionToken) {
       return NextResponse.json({ message: "No se recibió un token válido" }, { status: 401 });
     }
-
-    const sessionToken = data[0].tok;
 
     const cookie = serialize("session", sessionToken, {
       httpOnly: true,
@@ -38,7 +41,7 @@ export async function POST(req) {
     });
 
     return new NextResponse(
-      JSON.stringify({ message: "Inicio de sesión exitoso" }),
+      JSON.stringify({ message: "Inicio de sesión exitoso", token: sessionToken }),
       {
         status: 200,
         headers: { "Set-Cookie": cookie, "Content-Type": "application/json" },

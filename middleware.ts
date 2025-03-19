@@ -13,10 +13,10 @@ export function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/", req.url));
   }
 
-  // 🔥 Agrega el token en el header con el nombre "token"
+  // 🔥 Agrega el token en el header con el nombre "Authorization" y el prefijo "Bearer"
   const requestHeaders = new Headers(req.headers);
   if (token) {
-    requestHeaders.set("token", token);
+    requestHeaders.set("Authorization", `Bearer ${token}`);
   }
 
   return NextResponse.next({ headers: requestHeaders });
