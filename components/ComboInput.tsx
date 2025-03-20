@@ -1,5 +1,5 @@
 'use client'
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import Select from "react-select";
 import axios from "axios";
 
@@ -10,7 +10,7 @@ type ComboInputProps = {
   className?: string;
   resetTrigger?: number;
   defaultSelectedId?: number;
-  disabled?: boolean; // Propiedad para deshabilitar el input
+  disabled?: boolean; // Propiedad para deshabilitar el input desde fuera
 };
 
 const ComboInput: React.FC<ComboInputProps> = ({
@@ -26,6 +26,7 @@ const ComboInput: React.FC<ComboInputProps> = ({
   const [options, setOptions] = useState<{ value: number; label: string }[]>([]);
   const [selectedOption, setSelectedOption] = useState<{ value: number; label: string } | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Evitar renderizado hasta que el componente se haya montado para prevenir problemas de hidratación
   useEffect(() => {
@@ -34,32 +35,31 @@ const ComboInput: React.FC<ComboInputProps> = ({
 
   useEffect(() => {
     const processData = (data: any[]) => {
-      if (data.length === 0) {
-        console.error("⚠️ No se recibieron datos para ComboInput.");
+      if (!data || data.length === 0) {
+        console.warn("No se recibieron datos para ComboInput.");
+        setError("No se recibieron datos.");
+        setOptions([]);
         return;
       }
-
       // Detectar automáticamente los nombres de los campos
       const firstItem = data[0];
       const keys = Object.keys(firstItem);
-
       if (keys.length < 2) {
-        console.error("❌ Estructura de datos inválida. Se requieren al menos dos campos.");
+        console.error("Estructura de datos inválida. Se requieren al menos dos campos.");
+        setError("Estructura de datos inválida.");
+        setOptions([]);
         return;
       }
-
-      const idField = keys[0]; // Primer campo como ID
-      const labelField = keys[1]; // Segundo campo como descripción
-
-      console.log(`🔍 Detectados campos: ID="${idField}", Label="${labelField}"`);
-
-      // Mapear los datos para react-select
+      const idField = keys[0];
+      const labelField = keys[1];
+      console.log(`Campos detectados: ID="${idField}", Label="${labelField}"`);
       setOptions(
-        data.map((item) => ({
+        data.map(item => ({
           value: item[idField],
           label: item[labelField],
         }))
       );
+      setError(null);
     };
 
     if (localData && localData.length > 0) {
@@ -69,17 +69,42 @@ const ComboInput: React.FC<ComboInputProps> = ({
         try {
           setIsLoading(true);
           console.log("🔹 Consultando API:", apiUrl);
-
           const response = await axios.get(`/api/proxyJson?url=${encodeURIComponent(apiUrl)}`);
           console.log("✅ Respuesta de la API:", response.data);
 
-          if (response.status === 200 && Array.isArray(response.data)) {
-            processData(response.data);
+          if (response.status === 200) {
+            // Si la respuesta es un array, procesarla
+            if (Array.isArray(response.data)) {
+              processData(response.data);
+            }
+            // Si la respuesta es un objeto, revisamos si es vacío
+            else if (typeof response.data === "object" && response.data !== null) {
+              if (Object.keys(response.data).length === 0) {
+                // Objeto vacío: tratar como "sin datos"
+                console.warn("La respuesta está vacía.");
+                setError("No se recibieron datos.");
+                setOptions([]);
+              } else {
+                // Objeto no vacío: formato inesperado, lo tratamos como sin datos
+                console.warn("La respuesta de la API no es válida. Se esperaba un array o un objeto vacío. Se recibió:", response.data);
+                setError("No se recibieron datos.");
+                setOptions([]);
+              }
+            } else {
+              // Formato inesperado
+              console.warn("La respuesta de la API tiene un formato inesperado:", response.data);
+              setError("No se recibieron datos.");
+              setOptions([]);
+            }
           } else {
-            console.error("⚠️ Respuesta de la API no válida:", response.data);
+            console.error("Código de respuesta inesperado:", response.status);
+            setError(`Código de respuesta: ${response.status}`);
+            setOptions([]);
           }
-        } catch (error) {
+        } catch (error: any) {
           console.error("❌ Error al obtener datos de la API:", error);
+          setError("Error al obtener datos de la API.");
+          setOptions([]);
         } finally {
           setIsLoading(false);
         }
@@ -92,7 +117,7 @@ const ComboInput: React.FC<ComboInputProps> = ({
   // Actualizar opción seleccionada según el valor por defecto o trigger de reinicio
   useEffect(() => {
     if (defaultSelectedId && options.length > 0) {
-      const preselected = options.find((opt) => opt.value === defaultSelectedId) || null;
+      const preselected = options.find(opt => opt.value === defaultSelectedId) || null;
       setSelectedOption(preselected);
     } else {
       setSelectedOption(null);
@@ -136,9 +161,16 @@ const ComboInput: React.FC<ComboInputProps> = ({
         value={selectedOption}
         onChange={handleChange}
         isLoading={isLoading}
-        isDisabled={disabled}
-        isClearable // Permite limpiar la selección
-        placeholder={isLoading ? "Cargando opciones..." : "Selecciona una opción..."}
+        isClearable={true}  // Permite eliminar la selección
+        // Se deshabilita si se pasa la propiedad disabled o si hay error
+        isDisabled={disabled || !!error}
+        placeholder={
+          error
+            ? error
+            : isLoading
+            ? "Cargando opciones..."
+            : "Selecciona una opción..."
+        }
       />
     </div>
   );
