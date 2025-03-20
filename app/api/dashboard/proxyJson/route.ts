@@ -76,9 +76,6 @@ async function handleRequest(req: Request, method: string) {
 
     if (response.status === 401 || response.status === 307 || data === "Token is missing") {
       console.warn("🔒 No autorizado: Eliminando sesión y redirigiendo.");
-      await fetch("/api/auth/logout", { method: "POST" });
-      localStorage.clear();
-      window.location.href = "/";
     }
 
     return NextResponse.json(data, { status: response.status });
