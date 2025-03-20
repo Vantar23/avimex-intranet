@@ -244,7 +244,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
                   </label>
                   {eitherField.type === "ComboComponent" ? (
                     <ComboInput
-                      apiUrl={eitherField.apiUrl || "/api/proxyJson"}
+                      apiUrl={eitherField.apiUrl || "/api/dashboard/proxyJson"}
                       defaultSelectedId={formData[eitherField.name]}
                       onSelectionChange={(value) => handleChange(eitherField.name, value)}
                     />
@@ -339,7 +339,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
               />
             ) : field.type === "combo" && field.component === "ComboComponent" ? (
               <ComboInput
-                apiUrl={field.apiUrl || "/api/proxyJson"}
+                apiUrl={field.apiUrl || "/api/dashboard/proxyJson"}
                 defaultSelectedId={formData[field.name]}
                 onSelectionChange={(value) => handleChange(field.name, value)}
               />
