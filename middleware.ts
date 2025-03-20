@@ -5,14 +5,12 @@ export async function middleware(req: NextRequest) {
   const sessionToken = req.cookies.get("session")?.value;
 
   // Permitir acceso sin restricción a la página principal
-  if (pathname === "/") return NextResponse.next();
+  if (pathname === "/") return; // No devuelve una respuesta, deja que el servidor maneje la petición normalmente
 
   // Si no hay token en cookies, redirigir a "/"
   if (!sessionToken) {
     return NextResponse.redirect(new URL("/", req.nextUrl));
   }
-
-  return NextResponse.next();
 }
 
 export const config = {

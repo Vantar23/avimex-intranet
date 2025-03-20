@@ -69,73 +69,55 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-
-    // Limpiar espacios adicionales en el campo 'proveedorId'
-    if (formData.proveedorId && typeof formData.proveedorId === "string") {
-      formData.proveedorId = formData.proveedorId.trim();
+  
+    if (!formConfig) {
+      alert("No se encontró configuración del formulario.");
+      return;
     }
-
-    // Validar campos "either": se debe completar al menos uno de los dos campos
-    if (formConfig) {
-      for (const field of formConfig.fields) {
-        if (field.type === "either" && field.eitherFields) {
-          const [firstField, secondField] = field.eitherFields;
-          if (
-            (!formData[firstField.name] || formData[firstField.name] === "") &&
-            (!formData[secondField.name] || formData[secondField.name] === "")
-          ) {
-            alert(
-              `Por favor, complete al menos uno de los campos: ${firstField.label} o ${secondField.label}.`
-            );
-            return;
-          }
+  
+    if (!formConfig.submitButton?.action) {
+      alert("No se ha definido la acción del botón de envío.");
+      return;
+    }
+  
+    try {
+      console.log("JSON del formulario:", JSON.stringify(formData, null, 2));
+  
+      if (Object.keys(fileData).length > 0) {
+        const form = new FormData();
+        for (const key in fileData) {
+          form.append(key, fileData[key], formData[key]);
         }
-      }
-    }
-
-    // Mostrar en consola el JSON del formulario
-    console.log("JSON del formulario:", JSON.stringify(formData, null, 2));
-
-    // Si hay archivos, enviarlos primero a /api/SaveFile
-    if (Object.keys(fileData).length > 0) {
-      const form = new FormData();
-      // Se envían todos los archivos; el tercer parámetro define el nombre del archivo (ya con prefijo)
-      for (const key in fileData) {
-        form.append(key, fileData[key], formData[key]);
-      }
-      try {
+  
         const fileResponse = await axios.post("/api/dashboard/SaveFile", form, {
           headers: { "Content-Type": "multipart/form-data" },
         });
         console.log("Archivos guardados:", fileResponse.data);
-        // Opcional: actualizar formData con las rutas retornadas por SaveFile
-        // Object.assign(formData, fileResponse.data.savedFiles);
-      } catch (error) {
-        console.error("Error al guardar archivos:", error);
-        alert("Error al guardar archivos.");
-        return;
       }
-    }
-
-    // Enviar el JSON del formulario a /api/proxyJson en application/json
-    axios
-      .post(
-        "/api/proxyJson",
+  
+      const response = await axios.post(
+        "/api/dashboard/proxyJson",
         {
-          url: formConfig!.submitButton.action,
+          url: formConfig.submitButton.action,
           body: formData,
         },
         { headers: { "Content-Type": "application/json" } }
-      )
-      .then((response) => {
-        console.log("Response from proxy:", response.data);
-        alert("Datos enviados correctamente.");
-      })
-      .catch((error) => {
-        console.error("Error en el envío:", error);
-        alert("Error enviando los datos.");
-      });
+      );
+  
+      console.log("Response from proxy:", response.data);
+      alert(response.data);
+  
+      if (response.status !== 200) {
+        window.location.reload();
+      }
+    } catch (error: any) {
+      console.error("Error en el envío:", error);
+      await fetch("/api/auth/logout", { method: "POST" });
+      localStorage.clear();
+      window.location.href = "/";
+    }
   };
+  
 
   if (!formConfig) return <p>Cargando formulario...</p>;
 
