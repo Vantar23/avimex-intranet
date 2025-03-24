@@ -36,5 +36,5 @@ yarn-error.log*
 next-env.d.ts
 
 # Ignorar la carpeta public/uploads
-/public/uploads
+/public/documents
 package-lock.json
