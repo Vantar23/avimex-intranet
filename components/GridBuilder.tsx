@@ -10,17 +10,19 @@ interface ColumnDefinition {
 }
 
 interface GridBuilderProps {
-  jsonUrl: string; // ej: "/form-data/grids/grid1.json"
-  apiUrl: string;  // ej: "http://avimexintranet.com/backend/api/Catalogos?id=0"
+  jsonUrl: string;
+  apiUrl: string;
   onRowClick?: (rowData: any) => void;
 }
 
 const GridBuilder = ({ jsonUrl, apiUrl, onRowClick }: GridBuilderProps) => {
   const [columns, setColumns] = useState<ColumnDefinition[]>([]);
   const [data, setData] = useState<any[]>([]);
+  const [originalData, setOriginalData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedRow, setSelectedRow] = useState<any | null>(null);
   const rowsPerPage = 10;
 
   useEffect(() => {
@@ -36,6 +38,7 @@ const GridBuilder = ({ jsonUrl, apiUrl, onRowClick }: GridBuilderProps) => {
 
         setColumns(res.data.columns);
         setData(res.data.data);
+        setOriginalData(res.data.originalData);
       } catch (err: any) {
         setError(err.message || "Error desconocido al cargar los datos");
       } finally {
@@ -51,6 +54,21 @@ const GridBuilder = ({ jsonUrl, apiUrl, onRowClick }: GridBuilderProps) => {
     (currentPage - 1) * rowsPerPage,
     currentPage * rowsPerPage
   );
+
+  const handleRowClick = (item: any) => {
+    const fullData = originalData.find((row) =>
+      columns.every((col) => row[col.key] === item[col.key])
+    );
+    setSelectedRow(fullData || item);
+    onRowClick?.(fullData || item);
+  };
+
+  const formatKeyLabel = (key: string) => {
+    return key
+      .replace(/([A-Z])/g, " $1") // separa camelCase → camel Case
+      .replace(/^./, (str) => str.toUpperCase()) // primera en mayúscula
+      .replace(/_/g, " "); // reemplaza guiones bajos por espacios
+  };
 
   return (
     <div className="w-full p-4">
@@ -76,7 +94,7 @@ const GridBuilder = ({ jsonUrl, apiUrl, onRowClick }: GridBuilderProps) => {
                 <tr
                   key={idx}
                   className="hover:bg-gray-100 cursor-pointer"
-                  onClick={() => onRowClick?.(item)}
+                  onClick={() => handleRowClick(item)}
                 >
                   {columns.map((col) => (
                     <td key={col.key} className="p-3 border-b">
@@ -150,6 +168,45 @@ const GridBuilder = ({ jsonUrl, apiUrl, onRowClick }: GridBuilderProps) => {
               disabled={currentPage === totalPages}
             >
               &gt;
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Modal para mostrar detalles del registro seleccionado */}
+      {selectedRow && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+          <div className="bg-white p-6 rounded shadow-lg max-w-lg w-full max-h-[80vh] overflow-y-auto">
+            <h3 className="text-xl font-bold mb-4">Detalles del Registro</h3>
+            <div className="space-y-4 max-h-[60vh] overflow-y-auto px-2 py-2">
+              {Object.entries(selectedRow)
+                .filter(([key, value]) => {
+                  const excludedAlways = ["ArchCoti", "NombreCoti", "ArchFact", "NombreFact"];
+                  if (excludedAlways.includes(key)) return false;
+                  if (["NoFactura", "NoCotizacion"].includes(key)) {
+                    return value !== null && value !== "";
+                  }
+                  return true;
+                })
+                .map(([key, value]) => (
+                  <div
+                    key={key}
+                    className="grid grid-cols-3 gap-2 border-b pb-2 last:border-none"
+                  >
+                    <div className="col-span-1 text-base font-semibold text-gray-700 capitalize">
+                      {formatKeyLabel(key)}:
+                    </div>
+                    <div className="col-span-2 text-base text-gray-900 break-words">
+                      {String(value)}
+                    </div>
+                  </div>
+                ))}
+            </div>
+            <button
+              className="mt-4 px-4 py-2 bg-red-500 text-white rounded"
+              onClick={() => setSelectedRow(null)}
+            >
+              Cerrar
             </button>
           </div>
         </div>
