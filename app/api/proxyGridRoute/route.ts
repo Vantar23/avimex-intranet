@@ -1,6 +1,7 @@
-// app/api/proxy-grid/route.ts
 import { NextRequest, NextResponse } from 'next/server';
 import { serialize } from 'cookie';
+import { promises as fs } from 'fs';
+import path from 'path';
 
 interface ColumnDefinition {
   key: string;
@@ -22,23 +23,28 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // Convertir jsonUrl relativa a absoluta si es necesario
-    const absoluteJsonUrl = jsonUrl.startsWith("http")
-      ? jsonUrl
-      : `${req.nextUrl.origin}${jsonUrl}`;
+    let configJson: GridConfig;
 
-    const configRes = await fetch(absoluteJsonUrl);
-    if (!configRes.ok) throw new Error("No se pudo cargar el archivo JSON de configuración");
+    // ⚙️ Si es URL absoluta, usar fetch
+    if (jsonUrl.startsWith("http")) {
+      const configRes = await fetch(jsonUrl);
+      if (!configRes.ok) throw new Error("No se pudo cargar el archivo JSON de configuración");
+      configJson = await configRes.json();
+    } else {
+      // 📄 Lectura directa desde la carpeta public
+      const localPath = path.join(process.cwd(), "public", jsonUrl);
+      const fileContent = await fs.readFile(localPath, "utf-8");
+      configJson = JSON.parse(fileContent);
+    }
 
-    const configJson: GridConfig = await configRes.json();
-
-    // Preparar encabezados con token si existe en cookies
+    // 🛡️ Token desde cookies
     const token = req.headers.get("cookie")?.match(/session=([^;]+)/)?.[1];
     const headers: HeadersInit = { "Content-Type": "application/json" };
     if (token) {
       headers["Authorization"] = `Bearer ${token}`;
     }
 
+    // 📡 Solicitud de datos
     const dataRes = await fetch(apiUrl, { method: 'GET', headers });
     const cloneRes = dataRes.clone();
 
@@ -50,6 +56,7 @@ export async function GET(req: NextRequest) {
       data = { error: text };
     }
 
+    // ⚠️ Si falla el fetch del api
     if (!dataRes.ok) {
       let additionalHeaders: { [key: string]: string } = {};
       if (dataRes.status === 401) {
@@ -86,20 +93,20 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    // 🧱 Construcción del resultado
     const formattedData = data.map((item: any) => {
-        const row: any = {};
-      
-        // Añadir solo los campos de los encabezados
-        configJson.columns.forEach(col => {
-          row[col.key] = item[col.key];
-        });
-      
-        // Añadir siempre campos adicionales (para botones)
-        row.NombreFact = item.NombreFact;
-        row.NombreCoti = item.NombreCoti;
-      
-        return row;
+      const row: any = {};
+
+      configJson.columns.forEach(col => {
+        row[col.key] = item[col.key];
       });
+
+      // Campos adicionales
+      row.NombreFact = item.NombreFact;
+      row.NombreCoti = item.NombreCoti;
+
+      return row;
+    });
 
     return NextResponse.json({ columns: configJson.columns, data: formattedData });
   } catch (error: any) {
