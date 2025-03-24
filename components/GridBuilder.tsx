@@ -174,43 +174,52 @@ const GridBuilder = ({ jsonUrl, apiUrl, onRowClick }: GridBuilderProps) => {
       )}
 
       {/* Modal para mostrar detalles del registro seleccionado */}
-      {selectedRow && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-          <div className="bg-white p-6 rounded shadow-lg max-w-lg w-full max-h-[80vh] overflow-y-auto">
-            <h3 className="text-xl font-bold mb-4">Detalles del Registro</h3>
-            <div className="space-y-4 max-h-[60vh] overflow-y-auto px-2 py-2">
-              {Object.entries(selectedRow)
-                .filter(([key, value]) => {
-                  const excludedAlways = ["ArchCoti", "NombreCoti", "ArchFact", "NombreFact"];
-                  if (excludedAlways.includes(key)) return false;
-                  if (["NoFactura", "NoCotizacion"].includes(key)) {
-                    return value !== null && value !== "";
-                  }
-                  return true;
-                })
-                .map(([key, value]) => (
-                  <div
-                    key={key}
-                    className="grid grid-cols-3 gap-2 border-b pb-2 last:border-none"
-                  >
-                    <div className="col-span-1 text-base font-semibold text-gray-700 capitalize">
-                      {formatKeyLabel(key)}:
-                    </div>
-                    <div className="col-span-2 text-base text-gray-900 break-words">
-                      {String(value)}
-                    </div>
-                  </div>
-                ))}
+{selectedRow && (
+  <div
+    className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm p-4"
+    onClick={() => setSelectedRow(null)} // Cierra al hacer clic fuera
+  >
+    <div
+      className="bg-gray-50 w-full max-w-md p-8 rounded-xl border border-gray-200"
+      onClick={(e) => e.stopPropagation()} // Evita cierre al hacer clic dentro
+    >
+      <h2 className="text-center text-xl font-semibold tracking-tight text-gray-900 mb-8">
+        Detalles del Registro
+      </h2>
+
+      <div className="flex flex-col gap-6">
+        {Object.entries(selectedRow)
+          .filter(([key, value]) => {
+            const excluded = ["ArchCoti", "NombreCoti", "ArchFact", "NombreFact"];
+            if (excluded.includes(key)) return false;
+            if (["NoFactura", "NoCotizacion"].includes(key)) {
+              return value !== null && value !== "";
+            }
+            return true;
+          })
+          .map(([key, value]) => (
+            <div key={key}>
+              <p className="text-xs uppercase tracking-widest text-gray-500 mb-1">
+                {formatKeyLabel(key)}
+              </p>
+              <p className="text-sm text-gray-800 whitespace-pre-wrap break-words">
+                {String(value)}
+              </p>
             </div>
-            <button
-              className="mt-4 px-4 py-2 bg-red-500 text-white rounded"
-              onClick={() => setSelectedRow(null)}
-            >
-              Cerrar
-            </button>
-          </div>
-        </div>
-      )}
+          ))}
+      </div>
+
+      <div className="mt-10 flex justify-center">
+        <button
+          onClick={() => setSelectedRow(null)}
+          className="text-sm text-red-500 border border-red-500 px-4 py-2 rounded-full hover:bg-red-50 transition"
+        >
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 };

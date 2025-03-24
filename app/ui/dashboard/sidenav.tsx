@@ -15,7 +15,7 @@ export default function SideNav() {
     setIsMounted(true);
   }, []);
 
-  if (!isMounted) return null; // Evita renderizar hasta que el componente esté montado en el cliente
+  if (!isMounted) return null;
 
   const handleLogout = async () => {
     try {
@@ -36,12 +36,19 @@ export default function SideNav() {
     }
   };
 
+  const handleLinkClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    if (target.tagName === "A") {
+      setIsOpen(false);
+    }
+  };
+
   return (
     <>
       {/* Botón flotante para abrir el SideNav */}
       <button
-      className="fixed left-2 top-5 z-50 flex items-center justify-center rounded-lg bg-green-600 p-2 shadow-lg transition-all hover:bg-green-700"        
-      onClick={() => setIsOpen(true)}
+        className="fixed left-2 top-5 z-50 flex items-center justify-center rounded-lg bg-green-600 p-2 shadow-lg transition-all hover:bg-green-700"
+        onClick={() => setIsOpen(true)}
       >
         <Bars3Icon className="h-6 w-6 text-white" />
       </button>
@@ -73,12 +80,17 @@ export default function SideNav() {
           <Link
             className="mb-2 flex h-20 items-end justify-start rounded-md bg-green-600 p-4 md:h-40"
             href="/dashboard"
+            onClick={() => setIsOpen(false)}
           >
             <div className="w-32 text-white md:w-40">
               <AcmeLogo />
             </div>
           </Link>
-          <div className="flex grow flex-row justify-between space-x-2 md:flex-col md:space-x-0 md:space-y-2">
+
+          <div
+            className="flex grow flex-row justify-between space-x-2 md:flex-col md:space-x-0 md:space-y-2"
+            onClick={handleLinkClick}
+          >
             <NavLinks />
             <div className="hidden h-auto w-full grow rounded-md bg-gray-50 md:block"></div>
             <button
