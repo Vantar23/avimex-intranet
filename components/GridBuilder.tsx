@@ -189,14 +189,12 @@ const GridBuilder = ({ jsonUrl, apiUrl, onRowClick }: GridBuilderProps) => {
 
       <div className="flex flex-col gap-6">
         {Object.entries(selectedRow)
-          .filter(([key, value]) => {
-            const excluded = ["ArchCoti", "NombreCoti", "ArchFact", "NombreFact"];
-            if (excluded.includes(key)) return false;
-            if (["NoFactura", "NoCotizacion"].includes(key)) {
-              return value !== null && value !== "";
-            }
-            return true;
-          })
+         .filter(([key, value]) => {
+          const excluded = ["ArchCoti", "NombreCoti", "ArchFact", "NombreFact"];
+          if (excluded.includes(key)) return false;
+          if (value === null || value === undefined || value === "") return false;
+          return true;
+        })
           .map(([key, value]) => (
             <div key={key}>
               <p className="text-xs uppercase tracking-widest text-gray-500 mb-1">
