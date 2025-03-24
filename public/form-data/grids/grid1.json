@@ -1,0 +1,25 @@
+{
+    "dataUrl": "http://avimexintranet.com/backend/api/Catalogos?id=0",
+    "columns": [
+      {
+        "key": "producto",
+        "label": "Producto",
+        "type": "string"
+      },
+      {
+        "key": "proveedor",
+        "label": "Proveedor",
+        "type": "string"
+      },
+      {
+        "key": "Codigo",
+        "label": "Código",
+        "type": "string"
+      },
+      {
+        "key": "Cantidad",
+        "label": "Cantidad",
+        "type": "number"
+      }
+    ]
+  }

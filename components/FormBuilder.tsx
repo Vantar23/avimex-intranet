@@ -481,6 +481,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
             borderRadius: "6px",
             fontSize: "16px",
             cursor: "pointer",
+            marginBottom: "20px",
           }}
         >
           {formConfig.submitButton.label}
