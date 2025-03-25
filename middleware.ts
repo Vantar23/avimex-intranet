@@ -26,7 +26,6 @@ export async function middleware(req: NextRequest) {
     response.cookies.delete("session");
     return NextResponse.redirect(new URL("/", req.url));
   }
-
   return response;
 }
 

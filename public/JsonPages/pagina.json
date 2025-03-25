@@ -1,5 +1,3 @@
-
-
 {
   "title": "Panel de Requisiciones",
   "components": [
@@ -7,7 +5,7 @@
       "type": "heading",
       "props": {
         "text": "Listado general",
-        "size": "2xl"
+        "size": "xl"
       }
     },
     {
@@ -26,7 +24,8 @@
       "type": "grid",
       "props": {
         "jsonUrl": "/form-data/grids/grid1.json",
-        "apiUrl": "http://avimexintranet.com/backend/api/Catalogos?id=0"
+        "apiUrl": "http://avimexintranet.com/backend/api/Catalogos?id=0",
+        "selectFilters": ["proveedor", "Codigo", "NombreFact", "NombreCoti"]
       }
     }
   ]
