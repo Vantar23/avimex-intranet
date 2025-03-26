@@ -171,7 +171,6 @@ const GridBuilder = ({ jsonUrl, apiUrl, onRowClick, selectFilters }: GridBuilder
 
   return (
     <div className="w-full p-4">
-      <h2 className="text-xl font-bold mb-4">Tabla Generada Dinámicamente</h2>
       {error && <p className="text-red-500">{error}</p>}
 
       {/* Filtro global de texto */}

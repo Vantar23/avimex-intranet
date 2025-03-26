@@ -25,7 +25,7 @@
       "props": {
         "jsonUrl": "/form-data/grids/grid1.json",
         "apiUrl": "http://avimexintranet.com/backend/api/Catalogos?id=0",
-        "selectFilters": ["proveedor", "Codigo", "NombreFact", "NombreCoti"]
+        "selectFilters": ["proveedor", "NombreFact"]
       }
     }
   ]
