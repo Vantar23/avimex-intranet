@@ -10,8 +10,8 @@ export const ComponentFactory = (type: string, props: any) => {
       return <h2 className={`text-${props.size} font-bold mb-4`}>{props.text}</h2>;
     case "text":
       return <p className="mb-4">{props.content}</p>;
-    case "grid": 
-      return <GridBuilder {...props} />;
+    case "grid":
+      return <GridBuilder {...props} selectFilters={props.selectFilters || []} />;
     case "button":
       return <ButtonWithModal {...props} />;
     default:
@@ -24,13 +24,13 @@ const allowedColors = {
   green: "bg-green-500 hover:bg-green-600",
   red: "bg-red-500 hover:bg-red-600",
   purple: "bg-purple-500 hover:bg-purple-600",
-  gray: "bg-gray-500 hover:bg-gray-600"
+  gray: "bg-gray-500 hover:bg-gray-600",
 };
 
 const ButtonWithModal = ({ label, color = "blue", modal = null }: any) => {
   const [open, setOpen] = useState(false);
-
-  const colorClasses = allowedColors[color as keyof typeof allowedColors] || allowedColors.blue;
+  const colorClasses =
+    allowedColors[color as keyof typeof allowedColors] || allowedColors.blue;
 
   return (
     <div>
@@ -44,8 +44,6 @@ const ButtonWithModal = ({ label, color = "blue", modal = null }: any) => {
       {open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="relative bg-white w-full max-w-4xl max-h-[90vh] rounded-lg shadow-lg px-6 pt-6 pb-6 overflow-hidden">
-            
-            {/* Botón cerrar */}
             <button
               onClick={() => setOpen(false)}
               className="absolute -top-0 right-3 text-gray-500 hover:text-red-600 text-2xl font-bold z-10"
@@ -53,8 +51,6 @@ const ButtonWithModal = ({ label, color = "blue", modal = null }: any) => {
             >
               &times;
             </button>
-
-            {/* Contenedor con scroll si es necesario */}
             <div className="pt-4 overflow-y-auto max-h-[75vh] pr-2">
               {modal?.type === "dynamicForm" && (
                 <DynamicForm num={modal.num} subcarpeta={modal.subcarpeta} />
@@ -66,3 +62,5 @@ const ButtonWithModal = ({ label, color = "blue", modal = null }: any) => {
     </div>
   );
 };
+
+export default ComponentFactory;
