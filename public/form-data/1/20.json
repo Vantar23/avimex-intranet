@@ -1,0 +1,62 @@
+{
+  "ModuloId": 1,
+  "title": "Requisiciones",
+  "description": "Complete los siguientes campos",
+  "fields": [
+    {
+      "label": "Codigo",
+      "name": "codigo",
+      "type": "text",
+      "required": true
+    },
+    {
+      "label": "Cantidad",
+      "name": "cantidad",
+      "type": "number",
+      "required": true
+    },
+    {
+      "label": "Numero de Factura",
+      "name": "noFactura",
+      "type": "text",
+      "required": false,
+      "childField": {
+        "label": "Archivo de Factura",
+        "name": "archFact",
+        "type": "file",
+        "required": false
+      }
+    },
+    {
+      "label": "Numero de Cotización",
+      "name": "noCoti",
+      "type": "text",
+      "required": false,
+      "childField": {
+        "label": "Archivo de Cotizacion",
+        "name": "archCoti",
+        "type": "file",
+        "required": false
+      }
+    },
+    {
+      "label": "Producto",
+      "name": "producto",
+      "type": "text",
+      "required": true
+    },
+    {
+      "label": "Proveedor",
+      "name": "proveedor",
+      "type": "combo",
+      "required": false,
+      "component": "ComboComponent",
+      "apiUrl": "http://avimexintranet.com/backend/api/catalogos"
+    }
+  ],
+  "submitButton": {
+    "label": "Enviar",
+    "action": "/api/submit",
+    "method": "POST"
+  }
+}

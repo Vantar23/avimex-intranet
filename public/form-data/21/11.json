@@ -1,0 +1,18 @@
+{
+  "ModuloId": 21,
+  "title": "Registro de Usuario",
+  "description": "Complete los siguientes campos para registrarse",
+  "fields": [
+    {
+      "label": "Prueba JSON",
+      "name": "Campo 1",
+      "type": "text",
+      "required": false
+    }
+  ],
+  "submitButton": {
+    "label": "Enviar",
+    "action": "/api/submit",
+    "method": "POST"
+  }
+}

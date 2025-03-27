@@ -1,0 +1,21 @@
+{
+  "ModuloId": 21,
+  "title": "Registro de Usuarios",
+  "description": "descripcion",
+  "fields": [
+    {
+      "label": "Nuevo Campo",
+      "name": "campo0",
+      "type": "combo",
+      "required": false,
+      "component": "ComboComponent",
+      "apiUrl": "http:api.com",
+      "options": []
+    }
+  ],
+  "submitButton": {
+    "label": "Enviar",
+    "action": "/api/submit",
+    "method": "POST"
+  }
+}

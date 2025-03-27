@@ -1,18 +1,21 @@
 import { NextResponse } from "next/server";
 import { serialize } from "cookie";
 
-const API_URL = "http://avimexintranet.com/backend/api/login"; // 🔥 Backend externo
+const API_URL = process.env.API_URL || "http://avimexintranet.com/backend/api/login"; // 🔥 Usa variable de entorno
 
 export async function POST(req) {
   try {
     const { usuario, pwd } = await req.json();
 
-    // Hacer la solicitud a la API externa
+    if (typeof usuario !== "string" || typeof pwd !== "string" || !usuario.trim() || !pwd.trim()) {
+      return NextResponse.json({ message: "Usuario o contraseña inválidos" }, { status: 400 });
+    }
+
     const response = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ usuario, pwd }),
-      redirect: "manual", // 🔥 Evita redirecciones automáticas
+      redirect: "manual",
     });
 
     if (!response.ok) {
@@ -20,23 +23,25 @@ export async function POST(req) {
     }
 
     const data = await response.json();
-    if (!Array.isArray(data) || data.length === 0 || !data[0].tok) {
+    console.log("Respuesta del backend:", data);
+
+    // 🔥 Ajusta esto según la estructura real del JSON que recibes
+    const sessionToken = data?.token || (Array.isArray(data) && data[0]?.token);
+
+    if (!sessionToken) {
       return NextResponse.json({ message: "No se recibió un token válido" }, { status: 401 });
     }
 
-    const sessionToken = data[0].tok;
-
-    // 🔹 Configurar la cookie sin `secure: true`
     const cookie = serialize("session", sessionToken, {
-      httpOnly: true, // Protege la cookie (no accesible por JS)
-      secure: false, // ❌ NO usar en producción sin HTTPS
-      sameSite: "lax", // Evita bloqueos en navegadores como Safari
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // ✅ Solo en producción
+      sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 24, // 1 día
     });
 
     return new NextResponse(
-      JSON.stringify({ message: "Inicio de sesión exitoso" }),
+      JSON.stringify({ message: "Inicio de sesión exitoso", token: sessionToken }),
       {
         status: 200,
         headers: { "Set-Cookie": cookie, "Content-Type": "application/json" },

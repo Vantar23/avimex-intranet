@@ -1,0 +1,33 @@
+
+
+{
+  "title": "Panel de Requisiciones",
+  "components": [
+    {
+      "type": "heading",
+      "props": {
+        "text": "Listado general",
+        "size": "2xl"
+      }
+    },
+    {
+      "type": "button",
+      "props": {
+        "label": "Nueva Requisición +",
+        "color": "green",
+        "modal": {
+          "type": "dynamicForm",
+          "num": "22",
+          "subcarpeta": "1"
+        }
+      }
+    },
+    {
+      "type": "grid",
+      "props": {
+        "jsonUrl": "/form-data/grids/grid1.json",
+        "apiUrl": "http://avimexintranet.com/backend/api/Catalogos?id=0"
+      }
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "ModuloId": 1,
+  "title": "Prueba",
+  "description": "Complete los siguientes campos para registrarse",
+  "fields": [
+    {
+      "label": "Nuevo Campo Anidado",
+      "name": "campo0",
+      "type": "text",
+      "required": false,
+      "childField": {
+        "label": "Campo hijo",
+        "name": "select",
+        "type": "select",
+        "required": false,
+        "options": [
+          {
+            "label": "Opción 1",
+            "value": "opcion1"
+          },
+          {
+            "label": "Opción 2",
+            "value": "opcion2"
+          },
+          {
+            "label": "Opción 3",
+            "value": "opcion3"
+          }
+        ]
+      }
+    }
+  ],
+  "submitButton": {
+    "label": "Enviar",
+    "action": "/api/submit",
+    "method": "POST"
+  }
+}
