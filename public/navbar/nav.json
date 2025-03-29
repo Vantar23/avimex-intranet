@@ -1,0 +1,244 @@
+{
+    "menu": [
+      {
+        "name": "Inicio",
+        "href": "/dashboard",
+        "icon": "HomeIcon"
+      },
+      {
+        "name": "Submenus",
+        "icon": "Squares2X2Icon",
+        "subMenu": [
+          {
+            "name": "Galerias",
+            "subMenu": [
+              {
+                "name": "2012",
+                "href": "/dashboard/galerias/2012"
+              },
+              {
+                "name": "2016",
+                "href": "/dashboard/galerias/2016"
+              }
+            ]
+          },
+          {
+            "name": "Agenda",
+            "subMenu": [
+              {
+                "name": "Principal",
+                "href": "/dashboard/agenda/principal"
+              }
+            ]
+          },
+          {
+            "name": "Ventas",
+            "subMenu": [
+              {
+                "name": "Presupuesto",
+                "href": "/dashboard/ventas/presupuesto"
+              },
+              {
+                "name": "Cobranza",
+                "href": "/dashboard/ventas/cobranza"
+              },
+              {
+                "name": "Curso Avimex",
+                "href": "/dashboard/ventas/curso-avimex"
+              },
+              {
+                "name": "Pronostico",
+                "href": "/dashboard/ventas/pronostico"
+              },
+              {
+                "name": "Tesoreria",
+                "href": "/dashboard/ventas/tesoreria"
+              },
+              {
+                "name": "Mercadotecnia",
+                "href": "/dashboard/ventas/mercadotecnia"
+              },
+              {
+                "name": "Indicadores Empresariales",
+                "href": "/dashboard/ventas/indicadores-empresariales"
+              },
+              {
+                "name": "Precios",
+                "href": "/dashboard/ventas/precios"
+              },
+              {
+                "name": "Capacitacion",
+                "href": "/dashboard/ventas/capacitacion"
+              }
+            ]
+          },
+          {
+            "name": "Mantenimiento",
+            "subMenu": [
+              {
+                "name": "Calibracion",
+                "href": "/dashboard/mantenimiento/calibracion"
+              },
+              {
+                "name": "Sensores Calibracion",
+                "href": "/dashboard/mantenimiento/sensores-calibracion"
+              },
+              {
+                "name": "Mantenimiento Planta",
+                "href": "/dashboard/mantenimiento/mantenimiento-planta"
+              },
+              {
+                "name": "Mantenimiento Correctivo",
+                "href": "/dashboard/mantenimiento/mantenimiento-correctivo"
+              },
+              {
+                "name": "Mantenimiento MCCR",
+                "href": "/dashboard/mantenimiento/mantenimiento-mccr"
+              }
+            ]
+          },
+          {
+            "name": "Planta",
+            "subMenu": [
+              {
+                "name": "Metrologia",
+                "href": "/dashboard/planta/metrologia"
+              },
+              {
+                "name": "Monitoreo_2021",
+                "href": "/dashboard/planta/monitoreo-2021"
+              },
+              {
+                "name": "Solicitudes",
+                "href": "/dashboard/planta/solicitudes"
+              },
+              {
+                "name": "Rastreabilidad",
+                "href": "/dashboard/planta/rastreabilidad"
+              },
+              {
+                "name": "Compras",
+                "href": "/dashboard/planta/compras"
+              },
+              {
+                "name": "Calidad",
+                "href": "/dashboard/planta/calidad"
+              }
+            ]
+          },
+          {
+            "name": "Servicios TI",
+            "subMenu": [
+              {
+                "name": "Mantenimiento TI",
+                "href": "/dashboard/servicios-ti/mantenimiento-ti"
+              },
+              {
+                "name": "Asistencia TI",
+                "href": "/dashboard/servicios-ti/asistencia-ti"
+              }
+            ]
+          },
+          {
+            "name": "R.Humanos",
+            "subMenu": [
+              {
+                "name": "Administracion",
+                "href": "/dashboard/r-humanos/administracion"
+              },
+              {
+                "name": "Tramites",
+                "href": "/dashboard/r-humanos/tramites"
+              },
+              {
+                "name": "Nomina",
+                "href": "/dashboard/r-humanos/nomina"
+              },
+              {
+                "name": "Encuestas",
+                "href": "/dashboard/r-humanos/encuestas"
+              },
+              {
+                "name": "Capacitación",
+                "href": "/dashboard/r-humanos/capacitacion"
+              }
+            ]
+          },
+          {
+            "name": "Documentacion",
+            "subMenu": [
+              {
+                "name": "Repositorio Documentos",
+                "href": "/dashboard/documentacion/repositorio-documentos"
+              },
+              {
+                "name": "Legal",
+                "href": "/dashboard/documentacion/legal"
+              },
+              {
+                "name": "Técnico",
+                "href": "/dashboard/documentacion/tecnico"
+              },
+              {
+                "name": "Fiscales",
+                "href": "/dashboard/documentacion/fiscales"
+              }
+            ]
+          },
+          {
+            "name": "Innovacion",
+            "subMenu": [
+              {
+                "name": "Centro Inteligencia",
+                "href": "/dashboard/innovacion/centro-inteligencia"
+              },
+              {
+                "name": "Centro Conocimiento",
+                "href": "/dashboard/innovacion/centro-conocimiento"
+              }
+            ]
+          },
+          {
+            "name": "Investigacion",
+            "subMenu": [
+              {
+                "name": "Pruebas",
+                "href": "/dashboard/investigacion/pruebas"
+              },
+              {
+                "name": "Proceso",
+                "href": "/dashboard/investigacion/proceso"
+              }
+            ]
+          },
+          {
+            "name": "Mant.Vehículos",
+            "subMenu": [
+              {
+                "name": "Administración",
+                "href": "/dashboard/mant-vehiculos/administracion"
+              },
+              {
+                "name": "Gasolina",
+                "href": "/dashboard/mant-vehiculos/gasolina"
+              },
+              {
+                "name": "Mantenimiento",
+                "href": "/dashboard/mant-vehiculos/mantenimiento"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "name": "Requisiciónes",
+        "href": "/pagina",
+        "icon": "PencilSquareIcon"
+      },
+      {
+        "name": "Mejoras",
+        "href": "/dashboard/mejoras",
+        "icon": "DocumentDuplicateIcon"
+      }
+    ]
+  }
