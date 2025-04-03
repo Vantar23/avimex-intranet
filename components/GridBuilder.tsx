@@ -5,14 +5,7 @@ import axios from "axios";
 import { motion } from "framer-motion";
 import { FunnelIcon, XMarkIcon } from "@heroicons/react/24/outline";
 
-interface ColumnDefinition {
-  key: string;
-  label: string;
-  type: string;
-}
-
 interface GridBuilderProps {
-  jsonUrl: string;
   apiUrl: string;
   onRowClick?: (rowData: any) => void;
   // Prop para definir los campos que tendrán select dinámicos
@@ -34,13 +27,13 @@ function parseDate(dateString: string): Date {
 }
 
 export default function GridBuilder({
-  jsonUrl,
   apiUrl,
   onRowClick,
   selectFilters,
 }: GridBuilderProps) {
-  const [columns, setColumns] = useState<ColumnDefinition[]>([]);
+  const [columns, setColumns] = useState<string[]>([]);
   const [data, setData] = useState<any[]>([]);
+  // Aquí originalData contendrá únicamente el arreglo de datos
   const [originalData, setOriginalData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -52,24 +45,37 @@ export default function GridBuilder({
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  // Estado para los select dinámicos; cada clave es el nombre del campo y su valor el seleccionado
+  // Estado para los select dinámicos; cada clave es el nombre del campo y su valor seleccionado
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string>>({});
 
   const rowsPerPage = 10;
-
-  // Nuevo estado para mostrar/ocultar panel de filtros
   const [showFilters, setShowFilters] = useState(false);
 
-  // Carga de datos
+  // Carga de datos desde la API a través del proxy
   useEffect(() => {
     const fetchDataFromProxy = async () => {
       setLoading(true);
       try {
-        const res = await axios.get("/api/proxyGridRoute", { params: { jsonUrl, apiUrl } });
+        const res = await axios.get("/api/proxyGridRoute", { params: { apiUrl } });
         console.log("Respuesta de API:", res.data);
-        setColumns(res.data.columns);
-        setData(res.data.data);
-        setOriginalData(res.data.originalData);
+
+        // Se intenta usar primero las claves en mayúscula y, si no existen, se usan en minúscula.
+        const cols = res.data.Headers || res.data.columns;
+        const dta = res.data.Data || res.data.data;
+
+        if (!res.data || !Array.isArray(cols) || !Array.isArray(dta)) {
+          setError("Datos incompletos o erróneos recibidos.");
+          setColumns([]);
+          setData([]);
+          setOriginalData([]);
+        } else {
+          setColumns(cols);
+          setData(dta);
+          // originalData ahora contendrá únicamente el arreglo de datos,
+          // ya que se espera que el proxy retorne la propiedad originalData como un array.
+          const orig = res.data.originalData || dta;
+          setOriginalData(orig);
+        }
       } catch (err: any) {
         console.error("Error al cargar datos:", err);
         setError(err.message || "Error desconocido al cargar los datos");
@@ -77,8 +83,9 @@ export default function GridBuilder({
         setLoading(false);
       }
     };
+
     fetchDataFromProxy();
-  }, [jsonUrl, apiUrl]);
+  }, [apiUrl]);
 
   // Inicializar el estado de selectFilters cuando la prop cambia
   useEffect(() => {
@@ -120,13 +127,15 @@ export default function GridBuilder({
       // Filtro global de texto
       const matchesSearch =
         search === "" ||
-        Object.entries(row).some(([, value]) => String(value).toLowerCase().includes(search));
+        Object.entries(row).some(([, value]) =>
+          String(value).toLowerCase().includes(search)
+        );
 
       // Filtro de fecha
       let matchesDate = true;
       if (startDate || endDate) {
         const fechaKey = Object.keys(row).find((key) => key.toLowerCase() === "fecha");
-        if (fechaKey && row[fechaKey]) {
+        if (fechaKey && row[fechaKey] && typeof row[fechaKey] === "string") {
           const rowDateStr = row[fechaKey].split("T")[0];
           const rowDate = new Date(rowDateStr);
           if (startDate) {
@@ -266,8 +275,8 @@ export default function GridBuilder({
             <thead className="bg-gray-200">
               <tr>
                 {columns.map((col) => (
-                  <th key={col.key} className="p-3 text-left border-b">
-                    {col.label}
+                  <th key={col} className="p-3 text-left border-b">
+                    {formatKeyLabel(col)}
                   </th>
                 ))}
                 {/* Encabezado para Archivos + Ícono de filtros */}
@@ -293,8 +302,8 @@ export default function GridBuilder({
                   onClick={() => handleRowClick(item)}
                 >
                   {columns.map((col) => (
-                    <td key={col.key} className="p-3 border-b">
-                      {String(item[col.key] ?? "")}
+                    <td key={col} className="p-3 border-b">
+                      {String(item[col] ?? "")}
                     </td>
                   ))}
                   <td className="p-3 border-b">

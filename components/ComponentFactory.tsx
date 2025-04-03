@@ -11,7 +11,14 @@ export const ComponentFactory = (type: string, props: any) => {
     case "text":
       return <p className="mb-4">{props.content}</p>;
     case "grid":
-      return <GridBuilder {...props} selectFilters={props.selectFilters || []} />;
+      // Actualizado: se elimina jsonUrl y se utiliza solo apiUrl, onRowClick y selectFilters
+      return (
+        <GridBuilder
+          apiUrl={props.apiUrl}
+          onRowClick={props.onRowClick}
+          selectFilters={props.selectFilters || []}
+        />
+      );
     case "button":
       return <ButtonWithModal {...props} />;
     default:
@@ -50,7 +57,7 @@ const ButtonWithModal = ({ label, color = "blue", modal = null }: any) => {
               aria-label="Cerrar"
             >
               &times;
-            </button>
+            </button>s
             <div className="pt-4 overflow-y-auto max-h-[75vh] pr-2">
               {modal?.type === "dynamicForm" && (
                 <DynamicForm num={modal.num} subcarpeta={modal.subcarpeta} />

@@ -103,7 +103,7 @@ export default function HomePage() {
               <CardTitle>Desarrollo Moderno</CardTitle>
             </CardHeader>
             <CardContent>
-              Uso de tecnologías actuales como TypeScript y Express para un código más robusto y mantenible.
+              Uso de tecnologías actuales como TypeScript y Express para un código más robusto y mantenible a largo plazo.
             </CardContent>
           </Card>
         </div>

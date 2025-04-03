@@ -231,8 +231,18 @@
         ]
       },
       {
-        "name": "Requisiciónes",
-        "href": "/pagina",
+        "name": "Planta",
+        "subMenu": [
+          {
+            "name": "Compras",
+            "subMenu": [ {
+                "name": "Requisición",
+                "href": "/dashboard/pagina"
+                }
+            ]
+            
+          }
+        ],
         "icon": "PencilSquareIcon"
       },
       {
