@@ -78,7 +78,7 @@
   ],
   "submitButton": {
     "label": "Enviar",
-    "action": "http://avimexintranet.com/backend/api/compras",
+    "action": "http://avimexintranet.com/backend/api/requisiciones",
     "method": "POST"
   }
 }

@@ -57,7 +57,7 @@ const ButtonWithModal = ({ label, color = "blue", modal = null }: any) => {
               aria-label="Cerrar"
             >
               &times;
-            </button>s
+            </button>
             <div className="pt-4 overflow-y-auto max-h-[75vh] pr-2">
               {modal?.type === "dynamicForm" && (
                 <DynamicForm num={modal.num} subcarpeta={modal.subcarpeta} />

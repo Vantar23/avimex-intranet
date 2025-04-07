@@ -91,9 +91,9 @@ async function handleRequest(req: Request, method: string) {
 
     console.log("✅ Respuesta recibida:", data);
 
-    // Verificar si la respuesta contiene una propiedad "id" para actualizar el parámetro
-    if (data && typeof data.id !== "undefined") {
-      const newParam = data.id.toString();
+    // Verificar si la respuesta contiene un nuevo id_header
+    if (data && typeof data.id_header !== "undefined") {
+      const newParam = data.id_header.toString();
       if (newParam !== currentParam) {
         console.log(`🔄 Actualizando el id_header: "${currentParam}" -> "${newParam}"`);
         responseHeaders["Set-Cookie"] = serialize("id_header", newParam, {
@@ -104,6 +104,7 @@ async function handleRequest(req: Request, method: string) {
         });
       }
     }
+
 
     // Si la respuesta tiene error (por ejemplo, 401), se pueden agregar acciones adicionales (como eliminar cookies)
     if (!response.ok) {
