@@ -138,7 +138,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
       //alert("Datos enviados correctamente.");
 
       // Refrescar la página después de un envío exitoso
-      //window.location.reload();
+      window.location.reload();
     } catch (error: any) {
       console.error("Error en el envío de datos:", error);
       const errorMsg =
