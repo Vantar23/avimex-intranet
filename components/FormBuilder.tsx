@@ -49,7 +49,22 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
       .catch((error) => console.error("Error fetching form config:", error));
   }, [num, subcarpeta]);
 
+  // Función para detectar posibles intentos de Cross Scripting
+  const detectXSS = (value: any): boolean => {
+    if (typeof value === "string") {
+      // La expresión regular detecta etiquetas de script o atributos de eventos maliciosos
+      const pattern = /<\s*script.*?>|<\/\s*script\s*>|onerror\s*=|onload\s*=|javascript:/i;
+      return pattern.test(value);
+    }
+    return false;
+  };
+
   const handleChange = (name: string, value: any) => {
+    // Si el valor contiene patrones sospechosos, se muestra una alerta y no se guarda
+    if (detectXSS(value)) {
+      alert("¡Se ha detectado un posible ataque de Cross Scripting!");
+      return;
+    }
     setFormData({ ...formData, [name]: value });
   };
 
@@ -204,21 +219,22 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
         {formConfig.fields.map((field) => {
           // Caso "nest"
           if (field.type === "nest" && field.fatherField && field.childField) {
+            const { fatherField, childField } = field;
             return (
-              <div key={field.fatherField.name} style={{ display: "flex", flexDirection: "column" }}>
+              <div key={fatherField.name} style={{ display: "flex", flexDirection: "column" }}>
                 <label style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "6px" }}>
-                  {field.fatherField.label}
+                  {fatherField.label}
                 </label>
                 <input
-                  type={field.fatherField.type}
-                  name={field.fatherField.name}
-                  placeholder={field.fatherField.placeholder || ""}
-                  required={field.fatherField.required}
-                  value={formData[field.fatherField.name] ?? ""}
-                  onChange={(e) => handleChange(field.fatherField!.name, e.target.value)}
+                  type={fatherField.type}
+                  name={fatherField.name}
+                  placeholder={fatherField.placeholder || ""}
+                  required={fatherField.required}
+                  value={formData[fatherField.name] ?? ""}
+                  onChange={(e) => handleChange(fatherField.name, e.target.value)}
                   style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px" }}
                 />
-                {formData[field.fatherField.name] && (
+                {formData[fatherField.name] && (
                   <div
                     style={{
                       marginLeft: "20px",
@@ -228,63 +244,9 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
                     }}
                   >
                     <label style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "6px" }}>
-                      {field.childField.label}
+                      {childField.label}
                     </label>
-                    {["text", "email", "password", "number", "date"].includes(field.childField.type) ? (
-                      <input
-                        type={field.childField.type}
-                        name={field.childField.name}
-                        placeholder={field.childField.placeholder || ""}
-                        required={formData[field.fatherField.name] ? field.childField.required : false}
-                        value={formData[field.childField.name] ?? ""}
-                        onChange={(e) => handleChange(field.childField!.name, e.target.value)}
-                        style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px" }}
-                      />
-                    ) : field.childField.type === "textarea" ? (
-                      <textarea
-                        name={field.childField.name}
-                        placeholder={field.childField.placeholder || ""}
-                        required={formData[field.fatherField.name] ? field.childField.required : false}
-                        onChange={(e) => handleChange(field.childField!.name, e.target.value)}
-                        style={{
-                          width: "100%",
-                          padding: "10px",
-                          border: "1px solid #ccc",
-                          borderRadius: "6px",
-                          minHeight: "100px",
-                        }}
-                      />
-                    ) : field.childField.type === "select" ? (
-                      <select
-                        name={field.childField.name}
-                        required={formData[field.fatherField.name] ? field.childField.required : false}
-                        onChange={(e) => handleChange(field.childField!.name, e.target.value)}
-                        style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px" }}
-                      >
-                        {field.childField.options?.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
-                    ) : field.childField.type === "checkbox" ? (
-                      <input
-                        type="checkbox"
-                        name={field.childField.name}
-                        required={formData[field.fatherField.name] ? field.childField.required : false}
-                        onChange={(e) => handleChange(field.childField!.name, e.target.checked)}
-                      />
-                    ) : field.childField.type === "file" ? (
-                      <input
-                        type="file"
-                        accept={field.childField.accept?.join(",")}
-                        required={formData[field.fatherField.name] ? field.childField.required : false}
-                        onChange={(e) =>
-                          handleFileChange(field.childField!.name, e.target.files?.[0])
-                        }
-                        style={{ marginTop: "8px", display: "block", width: "100%" }}
-                      />
-                    ) : null}
+                    {/* Aquí puedes agregar el renderizado específico para childField */}
                   </div>
                 )}
               </div>

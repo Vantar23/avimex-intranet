@@ -40,9 +40,21 @@ async function handleRequest(req: Request, method: string) {
       );
     }
 
-    // Leer el parámetro actual desde la cookie "id_header" o usar "0" por defecto
+    // Leer la cookie id_header o usar "0" por defecto y establecerla si no existe
     const cookies = req.headers.get("cookie") || "";
-    const currentParam = cookies.match(/id_header=([^;]+)/)?.[1] || "0";
+    let currentParam = cookies.match(/id_header=([^;]+)/)?.[1];
+    let responseHeaders: { [key: string]: string } = {};
+
+    if (!currentParam) {
+      currentParam = "0";
+      console.log(`🔹 No se encontró id_header. Se crea con el valor por defecto: ${currentParam}`);
+      responseHeaders["Set-Cookie"] = serialize("id_header", currentParam, {
+        httpOnly: false,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+      });
+    }
 
     console.log(`🔹 Haciendo petición ${method} a: ${url} con id_header: ${currentParam}`);
     if (body) console.log("📤 Datos enviados:", body);
@@ -79,16 +91,13 @@ async function handleRequest(req: Request, method: string) {
 
     console.log("✅ Respuesta recibida:", data);
 
-    // Variable para almacenar headers adicionales en la respuesta del proxy
-    let responseHeaders: { [key: string]: string } = {};
-
-    // Verificar si el body contiene una propiedad "id" para actualizar el parámetro
-    if (data && typeof data.id !== "undefined") {
-      const newParam = data.id.toString();
+    // Verificar si la respuesta contiene un nuevo id_header
+    if (data && typeof data.id_header !== "undefined") {
+      const newParam = data.id_header.toString();
       if (newParam !== currentParam) {
         console.log(`🔄 Actualizando el id_header: "${currentParam}" -> "${newParam}"`);
         responseHeaders["Set-Cookie"] = serialize("id_header", newParam, {
-          httpOnly: false, // Se establece en false para poder accederlo desde el cliente
+          httpOnly: false,
           secure: process.env.NODE_ENV === "production",
           sameSite: "lax",
           path: "/",
@@ -96,7 +105,8 @@ async function handleRequest(req: Request, method: string) {
       }
     }
 
-    // Si hay error en la petición (por ejemplo, 401), se pueden agregar acciones adicionales (como eliminar cookies)
+
+    // Si la respuesta tiene error (por ejemplo, 401), se pueden agregar acciones adicionales (como eliminar cookies)
     if (!response.ok) {
       console.error("❌ Error en la petición:", data, response.status);
       if (response.status === 401) {

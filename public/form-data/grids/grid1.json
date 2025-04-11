@@ -1,5 +1,5 @@
 {
-    "dataUrl": "http://avimexintranet.com/backend/api/Catalogos?id=0",
+    "dataUrl": "http://avimexintranet.com/backend/api/requisiciones",
     "columns": [
       {
         "key": "producto",

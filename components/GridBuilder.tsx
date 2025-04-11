@@ -3,19 +3,17 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
-import { FunnelIcon, XMarkIcon } from "@heroicons/react/24/outline";
-
-interface ColumnDefinition {
-  key: string;
-  label: string;
-  type: string;
-}
+import {
+  ArrowLeftIcon,
+  FunnelIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
+import Cookies from "js-cookie";
+import { FaFileExcel } from "react-icons/fa";
 
 interface GridBuilderProps {
-  jsonUrl: string;
   apiUrl: string;
   onRowClick?: (rowData: any) => void;
-  // Prop para definir los campos que tendrán select dinámicos
   selectFilters?: string[];
 }
 
@@ -34,12 +32,11 @@ function parseDate(dateString: string): Date {
 }
 
 export default function GridBuilder({
-  jsonUrl,
   apiUrl,
   onRowClick,
   selectFilters,
 }: GridBuilderProps) {
-  const [columns, setColumns] = useState<ColumnDefinition[]>([]);
+  const [columns, setColumns] = useState<string[]>([]);
   const [data, setData] = useState<any[]>([]);
   const [originalData, setOriginalData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -47,29 +44,47 @@ export default function GridBuilder({
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedRow, setSelectedRow] = useState<any | null>(null);
 
-  // Filtros globales
+  // Filtros
   const [globalSearch, setGlobalSearch] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-
-  // Estado para los select dinámicos; cada clave es el nombre del campo y su valor el seleccionado
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string>>({});
+  const [showFilters, setShowFilters] = useState(false);
+
+  // Determina si el ícono de regresar se mostrará
+  const [showReload, setShowReload] = useState(false);
 
   const rowsPerPage = 10;
 
-  // Nuevo estado para mostrar/ocultar panel de filtros
-  const [showFilters, setShowFilters] = useState(false);
+  useEffect(() => {
+    const idHeader = Cookies.get("id_header");
+    if (idHeader && idHeader !== "0") {
+      setShowReload(true);
+    }
+  }, []);
 
   // Carga de datos
   useEffect(() => {
     const fetchDataFromProxy = async () => {
       setLoading(true);
       try {
-        const res = await axios.get("/api/proxyGridRoute", { params: { jsonUrl, apiUrl } });
+        const res = await axios.get("/api/proxyGridRoute", { params: { apiUrl } });
         console.log("Respuesta de API:", res.data);
-        setColumns(res.data.columns);
-        setData(res.data.data);
-        setOriginalData(res.data.originalData);
+
+        const cols = res.data.Headers || res.data.columns;
+        const dta = res.data.Data || res.data.data;
+
+        if (!res.data || !Array.isArray(cols) || !Array.isArray(dta)) {
+          setError("Datos incompletos o erróneos recibidos.");
+          setColumns([]);
+          setData([]);
+          setOriginalData([]);
+        } else {
+          setColumns(cols);
+          setData(dta);
+          const orig = res.data.originalData || dta;
+          setOriginalData(orig);
+        }
       } catch (err: any) {
         console.error("Error al cargar datos:", err);
         setError(err.message || "Error desconocido al cargar los datos");
@@ -77,10 +92,11 @@ export default function GridBuilder({
         setLoading(false);
       }
     };
-    fetchDataFromProxy();
-  }, [jsonUrl, apiUrl]);
 
-  // Inicializar el estado de selectFilters cuando la prop cambia
+    fetchDataFromProxy();
+  }, [apiUrl]);
+
+  // Inicializa los valores de los selectFilters
   useEffect(() => {
     if (selectFilters && selectFilters.length > 0) {
       setSelectedFilters((prev) => {
@@ -93,12 +109,12 @@ export default function GridBuilder({
     }
   }, [selectFilters]);
 
-  // Determinar si existe el campo "fecha" (sin importar mayúsculas)
+  // Determinar si existe un campo "fecha"
   const hasFechaField = originalData.some((row) =>
     Object.keys(row).some((key) => key.toLowerCase() === "fecha")
   );
 
-  // Calcular los valores únicos para cada select dinámico
+  // Valores únicos para los selects dinámicos
   const distinctSelectValues: Record<string, string[]> = {};
   if (selectFilters) {
     selectFilters.forEach((field) => {
@@ -112,21 +128,48 @@ export default function GridBuilder({
     });
   }
 
+  // Exportación a CSV (Excel)
+  const handleExcelExport = () => {
+    let csvContent = "";
+    if (originalData.length > 0) {
+      const headers = Object.keys(originalData[0]);
+      csvContent += headers.join(",") + "\n";
+      originalData.forEach((row) => {
+        const values = headers.map((header) => {
+          const cell = row[header] ?? "";
+          return `"${String(cell).replace(/"/g, '""')}"`;
+        });
+        csvContent += values.join(",") + "\n";
+      });
+    }
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "data_export.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Filtro combinado
   useEffect(() => {
     const search = globalSearch.trim().toLowerCase();
-
     const filtered = originalData.filter((row) => {
-      // Filtro global de texto
+      // Filtro global
       const matchesSearch =
         search === "" ||
-        Object.entries(row).some(([, value]) => String(value).toLowerCase().includes(search));
+        Object.entries(row).some(([, value]) =>
+          String(value).toLowerCase().includes(search)
+        );
 
       // Filtro de fecha
       let matchesDate = true;
       if (startDate || endDate) {
-        const fechaKey = Object.keys(row).find((key) => key.toLowerCase() === "fecha");
-        if (fechaKey && row[fechaKey]) {
+        const fechaKey = Object.keys(row).find(
+          (key) => key.toLowerCase() === "fecha"
+        );
+        if (fechaKey && row[fechaKey] && typeof row[fechaKey] === "string") {
           const rowDateStr = row[fechaKey].split("T")[0];
           const rowDate = new Date(rowDateStr);
           if (startDate) {
@@ -143,7 +186,7 @@ export default function GridBuilder({
         }
       }
 
-      // Filtro por cada select dinámico
+      // Filtro por selects
       let matchesSelect = true;
       if (selectFilters) {
         selectFilters.forEach((field) => {
@@ -152,17 +195,26 @@ export default function GridBuilder({
           }
         });
       }
-
       return matchesSearch && matchesDate && matchesSelect;
     });
 
     setData(filtered);
     setCurrentPage(1);
-  }, [globalSearch, originalData, startDate, endDate, selectedFilters, selectFilters]);
+  }, [
+    globalSearch,
+    originalData,
+    startDate,
+    endDate,
+    selectedFilters,
+    selectFilters,
+  ]);
 
   // Paginación
   const totalPages = Math.ceil(data.length / rowsPerPage);
-  const paginatedData = data.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
+  const paginatedData = data.slice(
+    (currentPage - 1) * rowsPerPage,
+    currentPage * rowsPerPage
+  );
 
   // Clic en fila
   const handleRowClick = (item: any) => {
@@ -178,7 +230,7 @@ export default function GridBuilder({
 
   return (
     <div className="relative w-full p-4">
-      {/* Panel lateral derecho (animado con Framer Motion) */}
+      {/* Panel lateral de filtros */}
       <motion.div
         initial={{ x: "100%" }}
         animate={{ x: showFilters ? "0%" : "100%" }}
@@ -195,9 +247,11 @@ export default function GridBuilder({
           </button>
         </div>
 
-        {/* Filtro global de texto */}
+        {/* Filtro global */}
         <div className="mb-4">
-          <label className="block mb-1 text-sm font-medium">Búsqueda global:</label>
+          <label className="block mb-1 text-sm font-medium">
+            Búsqueda global:
+          </label>
           <input
             type="text"
             value={globalSearch}
@@ -207,13 +261,15 @@ export default function GridBuilder({
           />
         </div>
 
-        {/* Filtro de fecha en dos columnas */}
+        {/* Filtro de fecha */}
         {hasFechaField && (
           <div className="mb-4">
             <label className="block mb-1 text-sm font-medium">Fecha:</label>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Desde</label>
+                <label className="block text-xs text-gray-600 mb-1">
+                  Desde
+                </label>
                 <input
                   type="date"
                   value={startDate}
@@ -222,7 +278,9 @@ export default function GridBuilder({
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">Hasta</label>
+                <label className="block text-xs text-gray-600 mb-1">
+                  Hasta
+                </label>
                 <input
                   type="date"
                   value={endDate}
@@ -234,15 +292,20 @@ export default function GridBuilder({
           </div>
         )}
 
-        {/* Select dinámicos basados en selectFilters */}
+        {/* Selects dinámicos */}
         {selectFilters &&
           selectFilters.map((field) => (
             <div className="mb-4" key={field}>
-              <label className="block mb-1 text-sm font-medium">{formatKeyLabel(field)}:</label>
+              <label className="block mb-1 text-sm font-medium">
+                {formatKeyLabel(field)}:
+              </label>
               <select
                 value={selectedFilters[field] || ""}
                 onChange={(e) =>
-                  setSelectedFilters((prev) => ({ ...prev, [field]: e.target.value }))
+                  setSelectedFilters((prev) => ({
+                    ...prev,
+                    [field]: e.target.value,
+                  }))
                 }
                 className="border border-gray-300 p-2 rounded w-full"
               >
@@ -261,111 +324,155 @@ export default function GridBuilder({
       {loading ? (
         <p>Cargando datos...</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full border border-gray-300 rounded-lg shadow-md text-sm">
-            <thead className="bg-gray-200">
-              <tr>
-                {columns.map((col) => (
-                  <th key={col.key} className="p-3 text-left border-b">
-                    {col.label}
-                  </th>
-                ))}
-                {/* Encabezado para Archivos + Ícono de filtros */}
-                <th className="p-3 text-left border-b">
-                  <div className="flex items-center justify-between">
-                    <span>Archivos</span>
-                    <button
-                      onClick={() => setShowFilters((prev) => !prev)}
-                      className="bg-transparent text-gray-600 hover:text-gray-900"
-                      title="Mostrar/Ocultar Filtros"
-                    >
-                      <FunnelIcon className="w-5 h-5" />
-                    </button>
-                  </div>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedData.map((item, idx) => (
-                <tr
-                  key={idx}
-                  className="hover:bg-gray-100 cursor-pointer"
-                  onClick={() => handleRowClick(item)}
-                >
-                  {columns.map((col) => (
-                    <td key={col.key} className="p-3 border-b">
-                      {String(item[col.key] ?? "")}
-                    </td>
-                  ))}
-                  <td className="p-3 border-b">
-                    <div className="flex gap-2">
-                      {item.NombreFact && (
+        <div>
+          {/* Vista de tabla para escritorio con márgenes chicos */}
+          <div className="hidden md:block w-full max-w-screen-2xl mx-auto px-2">
+            <table className="table-fixed w-full border border-gray-300 rounded-lg shadow-md text-sm">
+              <thead className="bg-gray-200">
+                <tr>
+                  <th colSpan={columns.length + 1} className="p-2 border-b">
+                    <div className="flex items-center justify-between">
+                      {showReload ? (
                         <button
-                          className="px-2 py-1 bg-green-500 text-white rounded text-xs"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const path = `/documents/${item.NombreFact}`;
-                            const link = document.createElement("a");
-                            link.href = path;
-                            link.download = item.NombreFact;
-                            link.click();
+                          onClick={() => {
+                            Cookies.set("id_header", "0");
+                            window.location.reload();
                           }}
+                          className="bg-transparent text-gray-600 hover:text-gray-900"
+                          title="Regresar a ver todos los registros"
                         >
-                          Factura
+                          <ArrowLeftIcon className="w-5 h-5" />
                         </button>
+                      ) : (
+                        <span />
                       )}
-                      {item.NombreCoti && (
+                      <div className="flex items-center gap-2">
                         <button
-                          className="px-2 py-1 bg-blue-500 text-white rounded text-xs"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const path = `/documents/${item.NombreCoti}`;
-                            const link = document.createElement("a");
-                            link.href = path;
-                            link.download = item.NombreCoti;
-                            link.click();
-                          }}
+                          onClick={handleExcelExport}
+                          className="bg-transparent text-green-500 hover:text-green-700"
+                          title="Exportar a Excel"
                         >
-                          Cotización
+                          <FaFileExcel className="w-5 h-5" />
                         </button>
-                      )}
+                        <button
+                          onClick={() => setShowFilters((prev) => !prev)}
+                          className="bg-transparent text-gray-600 hover:text-gray-900"
+                          title="Mostrar/Ocultar Filtros"
+                        >
+                          <FunnelIcon className="w-5 h-5" />
+                        </button>
+                      </div>
                     </div>
-                  </td>
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+                <tr>
+                  {columns.map((col) => (
+                    <th
+                      key={col}
+                      className="p-2 text-left border-b whitespace-normal break-words"
+                    >
+                      {formatKeyLabel(col)}
+                    </th>
+                  ))}
+                  <th className="p-2 text-left border-b">Archivos</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedData.map((item, idx) => (
+                  <tr
+                    key={idx}
+                    className="hover:bg-gray-100 cursor-pointer"
+                    onClick={() => handleRowClick(item)}
+                  >
+                    {columns.map((col) => (
+                      <td
+                        key={col}
+                        className="p-2 border-b whitespace-normal break-words"
+                      >
+                        {String(item[col] ?? "")}
+                      </td>
+                    ))}
+                    <td className="p-2 border-b whitespace-normal break-words">
+  <div className="flex flex-wrap gap-2">
+    {item.NombreFact && (
+      <button
+        className="px-2 py-1 bg-green-500 text-white rounded text-xs"
+        onClick={(e) => {
+          e.stopPropagation();
+          const path = `/documents/${item.NombreFact}`;
+          const link = document.createElement("a");
+          link.href = path;
+          link.download = item.NombreFact;
+          link.click();
+        }}
+      >
+        Factura
+      </button>
+    )}
+    {item.NombreCoti && (
+      <button
+        className="px-2 py-1 bg-blue-500 text-white rounded text-xs"
+        onClick={(e) => {
+          e.stopPropagation();
+          const path = `/documents/${item.NombreCoti}`;
+          const link = document.createElement("a");
+          link.href = path;
+          link.download = item.NombreCoti;
+          link.click();
+        }}
+      >
+        Cotización
+      </button>
+    )}
+  </div>
+</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
 
-          <div className="flex justify-center mt-4 gap-2 text-sm">
-            <button
-              className="px-2 py-1 bg-gray-200 rounded disabled:opacity-50"
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage === 1}
-            >
-              &lt;
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => (
+            {/* Paginación */}
+            <div className="flex justify-center mt-4 gap-2 text-sm">
               <button
-                key={i}
-                className={`px-3 py-1 rounded ${
-                  currentPage === i + 1 ? "bg-blue-500 text-white" : "bg-gray-200"
-                }`}
-                onClick={() => setCurrentPage(i + 1)}
+                className="px-2 py-1 bg-gray-200 rounded disabled:opacity-50"
+                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                disabled={currentPage === 1}
               >
-                {i + 1}
+                &lt;
               </button>
-            ))}
-            <button
-              className="px-2 py-1 bg-gray-200 rounded disabled:opacity-50"
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-              disabled={currentPage === totalPages}
-            >
-              &gt;
-            </button>
+              {Array.from({ length: totalPages }, (_, i) => (
+                <button
+                  key={i}
+                  className={`px-3 py-1 rounded ${
+                    currentPage === i + 1
+                      ? "bg-blue-500 text-white"
+                      : "bg-gray-200"
+                  }`}
+                  onClick={() => setCurrentPage(i + 1)}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              <button
+                className="px-2 py-1 bg-gray-200 rounded disabled:opacity-50"
+                onClick={() =>
+                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                }
+                disabled={currentPage === totalPages}
+              >
+                &gt;
+              </button>
+            </div>
+          </div>
+
+          {/* Vista móvil (opcional) */}
+          <div className="block md:hidden">
+            {/* ... misma lógica en "cards" para móviles ... */}
           </div>
         </div>
       )}
-
+      
+      {/* Modal de detalles */}
       {selectedRow && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm p-4"

@@ -4,7 +4,7 @@
     {
       "type": "heading",
       "props": {
-        "text": "Listado general",
+        "text": "",
         "size": "xl"
       }
     },
@@ -23,8 +23,7 @@
     {
       "type": "grid",
       "props": {
-        "jsonUrl": "/form-data/grids/grid1.json",
-        "apiUrl": "http://avimexintranet.com/backend/api/Catalogos?id=0",
+        "apiUrl": "http://avimexintranet.com/backend/api/requisiciones",
         "selectFilters": ["proveedor", "NombreFact"]
       }
     }
