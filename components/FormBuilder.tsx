@@ -49,7 +49,22 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
       .catch((error) => console.error("Error fetching form config:", error));
   }, [num, subcarpeta]);
 
+  // Función para detectar posibles intentos de Cross Scripting
+  const detectXSS = (value: any): boolean => {
+    if (typeof value === "string") {
+      // La expresión regular detecta etiquetas de script o atributos de eventos maliciosos
+      const pattern = /<\s*script.*?>|<\/\s*script\s*>|onerror\s*=|onload\s*=|javascript:/i;
+      return pattern.test(value);
+    }
+    return false;
+  };
+
   const handleChange = (name: string, value: any) => {
+    // Si el valor contiene patrones sospechosos, se muestra una alerta y no se guarda
+    if (detectXSS(value)) {
+      alert("¡Se ha detectado un posible ataque de Cross Scripting!");
+      return;
+    }
     setFormData({ ...formData, [name]: value });
   };
 
@@ -215,7 +230,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
                   placeholder={field.fatherField.placeholder || ""}
                   required={field.fatherField.required}
                   value={formData[field.fatherField.name] ?? ""}
-                  onChange={(e) => handleChange(field.fatherField!.name, e.target.value)}
+                  onChange={(e) => handleChange(field.fatherField.name, e.target.value)}
                   style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px" }}
                 />
                 {formData[field.fatherField.name] && (
@@ -237,7 +252,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
                         placeholder={field.childField.placeholder || ""}
                         required={formData[field.fatherField.name] ? field.childField.required : false}
                         value={formData[field.childField.name] ?? ""}
-                        onChange={(e) => handleChange(field.childField!.name, e.target.value)}
+                        onChange={(e) => handleChange(field.childField.name, e.target.value)}
                         style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px" }}
                       />
                     ) : field.childField.type === "textarea" ? (
@@ -245,7 +260,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
                         name={field.childField.name}
                         placeholder={field.childField.placeholder || ""}
                         required={formData[field.fatherField.name] ? field.childField.required : false}
-                        onChange={(e) => handleChange(field.childField!.name, e.target.value)}
+                        onChange={(e) => handleChange(field.childField.name, e.target.value)}
                         style={{
                           width: "100%",
                           padding: "10px",
@@ -258,7 +273,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
                       <select
                         name={field.childField.name}
                         required={formData[field.fatherField.name] ? field.childField.required : false}
-                        onChange={(e) => handleChange(field.childField!.name, e.target.value)}
+                        onChange={(e) => handleChange(field.childField.name, e.target.value)}
                         style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px" }}
                       >
                         {field.childField.options?.map((option) => (
@@ -272,7 +287,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
                         type="checkbox"
                         name={field.childField.name}
                         required={formData[field.fatherField.name] ? field.childField.required : false}
-                        onChange={(e) => handleChange(field.childField!.name, e.target.checked)}
+                        onChange={(e) => handleChange(field.childField.name, e.target.checked)}
                       />
                     ) : field.childField.type === "file" ? (
                       <input
@@ -280,7 +295,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
                         accept={field.childField.accept?.join(",")}
                         required={formData[field.fatherField.name] ? field.childField.required : false}
                         onChange={(e) =>
-                          handleFileChange(field.childField!.name, e.target.files?.[0])
+                          handleFileChange(field.childField.name, e.target.files?.[0])
                         }
                         style={{ marginTop: "8px", display: "block", width: "100%" }}
                       />

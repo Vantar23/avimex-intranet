@@ -3,7 +3,14 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
-import { FunnelIcon, XMarkIcon } from "@heroicons/react/24/outline";
+import {
+  ArrowLeftIcon,
+  FunnelIcon,
+  XMarkIcon,
+} from "@heroicons/react/24/outline";
+import Cookies from "js-cookie";
+// Se importa el ícono de Excel desde FontAwesome en react-icons
+import { FaFileExcel } from "react-icons/fa";
 
 interface GridBuilderProps {
   apiUrl: string;
@@ -33,33 +40,43 @@ export default function GridBuilder({
 }: GridBuilderProps) {
   const [columns, setColumns] = useState<string[]>([]);
   const [data, setData] = useState<any[]>([]);
-  // Aquí originalData contendrá únicamente el arreglo de datos
   const [originalData, setOriginalData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedRow, setSelectedRow] = useState<any | null>(null);
 
-  // Filtros globales
+  // Filtros
   const [globalSearch, setGlobalSearch] = useState("");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
-
-  // Estado para los select dinámicos; cada clave es el nombre del campo y su valor seleccionado
-  const [selectedFilters, setSelectedFilters] = useState<Record<string, string>>({});
-
-  const rowsPerPage = 10;
+  const [selectedFilters, setSelectedFilters] = useState<Record<string, string>>(
+    {}
+  );
   const [showFilters, setShowFilters] = useState(false);
 
-  // Carga de datos desde la API a través del proxy
+  // Determina si el ícono de regresar se mostrará (cookie id_header != "0")
+  const [showReload, setShowReload] = useState(false);
+
+  const rowsPerPage = 10;
+
+  useEffect(() => {
+    const idHeader = Cookies.get("id_header");
+    if (idHeader && idHeader !== "0") {
+      setShowReload(true);
+    }
+  }, []);
+
+  // Carga de datos
   useEffect(() => {
     const fetchDataFromProxy = async () => {
       setLoading(true);
       try {
-        const res = await axios.get("/api/proxyGridRoute", { params: { apiUrl } });
+        const res = await axios.get("/api/proxyGridRoute", {
+          params: { apiUrl },
+        });
         console.log("Respuesta de API:", res.data);
 
-        // Se intenta usar primero las claves en mayúscula y, si no existen, se usan en minúscula.
         const cols = res.data.Headers || res.data.columns;
         const dta = res.data.Data || res.data.data;
 
@@ -71,8 +88,6 @@ export default function GridBuilder({
         } else {
           setColumns(cols);
           setData(dta);
-          // originalData ahora contendrá únicamente el arreglo de datos,
-          // ya que se espera que el proxy retorne la propiedad originalData como un array.
           const orig = res.data.originalData || dta;
           setOriginalData(orig);
         }
@@ -87,7 +102,7 @@ export default function GridBuilder({
     fetchDataFromProxy();
   }, [apiUrl]);
 
-  // Inicializar el estado de selectFilters cuando la prop cambia
+  // Inicializa valores de los selectFilters
   useEffect(() => {
     if (selectFilters && selectFilters.length > 0) {
       setSelectedFilters((prev) => {
@@ -100,12 +115,12 @@ export default function GridBuilder({
     }
   }, [selectFilters]);
 
-  // Determinar si existe el campo "fecha" (sin importar mayúsculas)
+  // Verificar si existe un campo "fecha"
   const hasFechaField = originalData.some((row) =>
     Object.keys(row).some((key) => key.toLowerCase() === "fecha")
   );
 
-  // Calcular los valores únicos para cada select dinámico
+  // Valores únicos para los <select> dinámicos
   const distinctSelectValues: Record<string, string[]> = {};
   if (selectFilters) {
     selectFilters.forEach((field) => {
@@ -119,12 +134,38 @@ export default function GridBuilder({
     });
   }
 
+  // Función para exportar datos a CSV (compatible con Excel)
+  const handleExcelExport = () => {
+    let csvContent = "";
+    if (originalData.length > 0) {
+      // Usamos las llaves del primer objeto para crear la cabecera
+      const headers = Object.keys(originalData[0]);
+      csvContent += headers.join(",") + "\n";
+      originalData.forEach((row) => {
+        const values = headers.map((header) => {
+          const cell = row[header] ?? "";
+          // Escapa comillas dobles en el valor de la celda
+          return `"${String(cell).replace(/"/g, '""')}"`;
+        });
+        csvContent += values.join(",") + "\n";
+      });
+    }
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "data_export.csv";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   // Filtro combinado
   useEffect(() => {
     const search = globalSearch.trim().toLowerCase();
 
     const filtered = originalData.filter((row) => {
-      // Filtro global de texto
+      // Filtro global
       const matchesSearch =
         search === "" ||
         Object.entries(row).some(([, value]) =>
@@ -134,7 +175,9 @@ export default function GridBuilder({
       // Filtro de fecha
       let matchesDate = true;
       if (startDate || endDate) {
-        const fechaKey = Object.keys(row).find((key) => key.toLowerCase() === "fecha");
+        const fechaKey = Object.keys(row).find(
+          (key) => key.toLowerCase() === "fecha"
+        );
         if (fechaKey && row[fechaKey] && typeof row[fechaKey] === "string") {
           const rowDateStr = row[fechaKey].split("T")[0];
           const rowDate = new Date(rowDateStr);
@@ -152,7 +195,7 @@ export default function GridBuilder({
         }
       }
 
-      // Filtro por cada select dinámico
+      // Filtro por selects
       let matchesSelect = true;
       if (selectFilters) {
         selectFilters.forEach((field) => {
@@ -161,7 +204,6 @@ export default function GridBuilder({
           }
         });
       }
-
       return matchesSearch && matchesDate && matchesSelect;
     });
 
@@ -171,7 +213,10 @@ export default function GridBuilder({
 
   // Paginación
   const totalPages = Math.ceil(data.length / rowsPerPage);
-  const paginatedData = data.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
+  const paginatedData = data.slice(
+    (currentPage - 1) * rowsPerPage,
+    currentPage * rowsPerPage
+  );
 
   // Clic en fila
   const handleRowClick = (item: any) => {
@@ -204,7 +249,7 @@ export default function GridBuilder({
           </button>
         </div>
 
-        {/* Filtro global de texto */}
+        {/* Filtro global */}
         <div className="mb-4">
           <label className="block mb-1 text-sm font-medium">Búsqueda global:</label>
           <input
@@ -216,7 +261,7 @@ export default function GridBuilder({
           />
         </div>
 
-        {/* Filtro de fecha en dos columnas */}
+        {/* Filtro de fecha */}
         {hasFechaField && (
           <div className="mb-4">
             <label className="block mb-1 text-sm font-medium">Fecha:</label>
@@ -243,15 +288,20 @@ export default function GridBuilder({
           </div>
         )}
 
-        {/* Select dinámicos basados en selectFilters */}
+        {/* Selects dinámicos */}
         {selectFilters &&
           selectFilters.map((field) => (
             <div className="mb-4" key={field}>
-              <label className="block mb-1 text-sm font-medium">{formatKeyLabel(field)}:</label>
+              <label className="block mb-1 text-sm font-medium">
+                {formatKeyLabel(field)}:
+              </label>
               <select
                 value={selectedFilters[field] || ""}
                 onChange={(e) =>
-                  setSelectedFilters((prev) => ({ ...prev, [field]: e.target.value }))
+                  setSelectedFilters((prev) => ({
+                    ...prev,
+                    [field]: e.target.value,
+                  }))
                 }
                 className="border border-gray-300 p-2 rounded w-full"
               >
@@ -273,27 +323,60 @@ export default function GridBuilder({
         <div className="overflow-x-auto">
           <table className="w-full border border-gray-300 rounded-lg shadow-md text-sm">
             <thead className="bg-gray-200">
+              {/* Fila para ícono de regresar y acciones en la parte superior */}
+              <tr>
+                <th colSpan={columns.length + 1} className="p-3 border-b">
+                  <div className="flex items-center justify-between">
+                    {/* Icono regresar en el extremo izquierdo */}
+                    {showReload ? (
+                      <button
+                        onClick={() => {
+                          Cookies.set("id_header", "0");
+                          window.location.reload();
+                        }}
+                        className="bg-transparent text-gray-600 hover:text-gray-900"
+                        title="Regresar a ver todos los registros"
+                      >
+                        <ArrowLeftIcon className="w-5 h-5" />
+                      </button>
+                    ) : (
+                      <span></span>
+                    )}
+
+                    {/* Grupo de iconos en el extremo derecho */}
+                    <div className="flex items-center gap-2">
+                      {/* Ícono de Excel, ubicado a la izquierda del de filtro */}
+                      <button
+                        onClick={handleExcelExport}
+                        className="bg-transparent text-green-500 hover:text-green-700"
+                        title="Exportar a Excel"
+                      >
+                        <FaFileExcel className="w-5 h-5" />
+                      </button>
+                      {/* Ícono de filtro */}
+                      <button
+                        onClick={() => setShowFilters((prev) => !prev)}
+                        className="bg-transparent text-gray-600 hover:text-gray-900"
+                        title="Mostrar/Ocultar Filtros"
+                      >
+                        <FunnelIcon className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
+                </th>
+              </tr>
+
+              {/* Fila de columnas */}
               <tr>
                 {columns.map((col) => (
                   <th key={col} className="p-3 text-left border-b">
                     {formatKeyLabel(col)}
                   </th>
                 ))}
-                {/* Encabezado para Archivos + Ícono de filtros */}
-                <th className="p-3 text-left border-b">
-                  <div className="flex items-center justify-between">
-                    <span>Archivos</span>
-                    <button
-                      onClick={() => setShowFilters((prev) => !prev)}
-                      className="bg-transparent text-gray-600 hover:text-gray-900"
-                      title="Mostrar/Ocultar Filtros"
-                    >
-                      <FunnelIcon className="w-5 h-5" />
-                    </button>
-                  </div>
-                </th>
+                <th className="p-3 text-left border-b">Archivos</th>
               </tr>
             </thead>
+
             <tbody>
               {paginatedData.map((item, idx) => (
                 <tr
@@ -345,6 +428,7 @@ export default function GridBuilder({
             </tbody>
           </table>
 
+          {/* Paginación */}
           <div className="flex justify-center mt-4 gap-2 text-sm">
             <button
               className="px-2 py-1 bg-gray-200 rounded disabled:opacity-50"
@@ -357,7 +441,9 @@ export default function GridBuilder({
               <button
                 key={i}
                 className={`px-3 py-1 rounded ${
-                  currentPage === i + 1 ? "bg-blue-500 text-white" : "bg-gray-200"
+                  currentPage === i + 1
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-200"
                 }`}
                 onClick={() => setCurrentPage(i + 1)}
               >
@@ -375,6 +461,7 @@ export default function GridBuilder({
         </div>
       )}
 
+      {/* Modal de detalles */}
       {selectedRow && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm p-4"
@@ -390,6 +477,7 @@ export default function GridBuilder({
             <div className="flex flex-col gap-6">
               {Object.entries(selectedRow)
                 .filter(([key, value]) => {
+                  // Ocultamos ciertos campos
                   const excluded = ["ArchCoti", "NombreCoti", "ArchFact", "NombreFact"];
                   if (excluded.includes(key)) return false;
                   if (key.toLowerCase().includes("id")) return false;
