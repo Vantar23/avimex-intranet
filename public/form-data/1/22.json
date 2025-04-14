@@ -1,7 +1,6 @@
 {
   "ModuloId": 1,
-  "title": "Requisiciones",
-  "description": "",
+  
   "fields": [
     {
       "label": "Codigo",

@@ -9,22 +9,15 @@
       }
     },
     {
-      "type": "button",
+      "type": "grid",
       "props": {
-        "label": "Nueva Requisición +",
-        "color": "green",
+        "apiUrl": "http://avimexintranet.com/backend/api/requisiciones",
+        "selectFilters": ["proveedor", "NombreFact"],
         "modal": {
           "type": "dynamicForm",
           "num": "22",
           "subcarpeta": "1"
         }
-      }
-    },
-    {
-      "type": "grid",
-      "props": {
-        "apiUrl": "http://avimexintranet.com/backend/api/requisiciones",
-        "selectFilters": ["proveedor", "NombreFact"]
       }
     }
   ]

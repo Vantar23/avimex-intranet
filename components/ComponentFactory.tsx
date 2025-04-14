@@ -11,12 +11,12 @@ export const ComponentFactory = (type: string, props: any) => {
     case "text":
       return <p className="mb-4">{props.content}</p>;
     case "grid":
-      // Actualizado: se elimina jsonUrl y se utiliza solo apiUrl, onRowClick y selectFilters
       return (
         <GridBuilder
           apiUrl={props.apiUrl}
           onRowClick={props.onRowClick}
           selectFilters={props.selectFilters || []}
+          modal={props.modal}  // Ahora modal viene incluido en props
         />
       );
     case "button":
@@ -34,7 +34,7 @@ const allowedColors = {
   gray: "bg-gray-500 hover:bg-gray-600",
 };
 
-const ButtonWithModal = ({ label, color = "blue", modal = null }: any) => {
+const ButtonWithModal = ({ label, color = "blue", modal }: any) => {
   const [open, setOpen] = useState(false);
   const colorClasses =
     allowedColors[color as keyof typeof allowedColors] || allowedColors.blue;

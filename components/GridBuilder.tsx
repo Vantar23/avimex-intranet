@@ -1,3 +1,4 @@
+// components/GridBuilder.tsx
 "use client";
 
 import { useState, useEffect } from "react";
@@ -7,16 +8,26 @@ import {
   ArrowLeftIcon,
   FunnelIcon,
   XMarkIcon,
-  PencilIcon,  // Ícono de editar
-  TrashIcon,   // Ícono de bote de basura
+  PencilIcon,
+  TrashIcon,
+  PlusIcon,
 } from "@heroicons/react/24/outline";
 import Cookies from "js-cookie";
 import { FaFileExcel } from "react-icons/fa";
+import DynamicForm from "@/components/FormBuilder";
+
+// Ahora modal siempre se espera dentro de props
+interface GridBuilderModalConfig {
+  type: "dynamicForm";
+  num: string;
+  subcarpeta: string;
+}
 
 interface GridBuilderProps {
   apiUrl: string;
   onRowClick?: (rowData: any) => void;
   selectFilters?: string[];
+  modal: GridBuilderModalConfig; // Ahora no es opcional, se incluye siempre en props
 }
 
 function parseDate(dateString: string): Date {
@@ -37,6 +48,7 @@ export default function GridBuilder({
   apiUrl,
   onRowClick,
   selectFilters,
+  modal,
 }: GridBuilderProps) {
   const [columns, setColumns] = useState<string[]>([]);
   const [data, setData] = useState<any[]>([]);
@@ -53,8 +65,11 @@ export default function GridBuilder({
   const [selectedFilters, setSelectedFilters] = useState<Record<string, string>>({});
   const [showFilters, setShowFilters] = useState(false);
 
-  // Determina si el ícono de regresar se mostrará
+  // Control del ícono de regresar
   const [showReload, setShowReload] = useState(false);
+
+  // Estado para el modal del FormBuilder
+  const [showFormModal, setShowFormModal] = useState(false);
 
   const rowsPerPage = 10;
 
@@ -65,7 +80,6 @@ export default function GridBuilder({
     }
   }, []);
 
-  // Carga de datos
   useEffect(() => {
     const fetchDataFromProxy = async () => {
       setLoading(true);
@@ -98,7 +112,6 @@ export default function GridBuilder({
     fetchDataFromProxy();
   }, [apiUrl]);
 
-  // Inicializa los valores de los selectFilters
   useEffect(() => {
     if (selectFilters && selectFilters.length > 0) {
       setSelectedFilters((prev) => {
@@ -111,12 +124,10 @@ export default function GridBuilder({
     }
   }, [selectFilters]);
 
-  // Determinar si existe un campo "fecha"
   const hasFechaField = originalData.some((row) =>
     Object.keys(row).some((key) => key.toLowerCase() === "fecha")
   );
 
-  // Valores únicos para los selects dinámicos
   const distinctSelectValues: Record<string, string[]> = {};
   if (selectFilters) {
     selectFilters.forEach((field) => {
@@ -130,7 +141,6 @@ export default function GridBuilder({
     });
   }
 
-  // Exportación a CSV (Excel)
   const handleExcelExport = () => {
     let csvContent = "";
     if (originalData.length > 0) {
@@ -154,18 +164,15 @@ export default function GridBuilder({
     document.body.removeChild(link);
   };
 
-  // Filtro combinado
   useEffect(() => {
     const search = globalSearch.trim().toLowerCase();
     const filtered = originalData.filter((row) => {
-      // Filtro global
       const matchesSearch =
         search === "" ||
         Object.entries(row).some(([, value]) =>
           String(value).toLowerCase().includes(search)
         );
 
-      // Filtro de fecha
       let matchesDate = true;
       if (startDate || endDate) {
         const fechaKey = Object.keys(row).find(
@@ -188,7 +195,6 @@ export default function GridBuilder({
         }
       }
 
-      // Filtro por selects
       let matchesSelect = true;
       if (selectFilters) {
         selectFilters.forEach((field) => {
@@ -211,14 +217,12 @@ export default function GridBuilder({
     selectFilters,
   ]);
 
-  // Paginación
   const totalPages = Math.ceil(data.length / rowsPerPage);
   const paginatedData = data.slice(
     (currentPage - 1) * rowsPerPage,
     currentPage * rowsPerPage
   );
 
-  // Clic en fila
   const handleRowClick = (item: any) => {
     setSelectedRow(item);
     onRowClick?.(item);
@@ -232,7 +236,6 @@ export default function GridBuilder({
 
   return (
     <div className="relative w-full p-4">
-      {/* Panel lateral de filtros */}
       <motion.div
         initial={{ x: "100%" }}
         animate={{ x: showFilters ? "0%" : "100%" }}
@@ -249,11 +252,8 @@ export default function GridBuilder({
           </button>
         </div>
 
-        {/* Filtro global */}
         <div className="mb-4">
-          <label className="block mb-1 text-sm font-medium">
-            Búsqueda global:
-          </label>
+          <label className="block mb-1 text-sm font-medium">Búsqueda global:</label>
           <input
             type="text"
             value={globalSearch}
@@ -263,15 +263,12 @@ export default function GridBuilder({
           />
         </div>
 
-        {/* Filtro de fecha */}
         {hasFechaField && (
           <div className="mb-4">
             <label className="block mb-1 text-sm font-medium">Fecha:</label>
             <div className="grid grid-cols-2 gap-2">
               <div>
-                <label className="block text-xs text-gray-600 mb-1">
-                  Desde
-                </label>
+                <label className="block text-xs text-gray-600 mb-1">Desde</label>
                 <input
                   type="date"
                   value={startDate}
@@ -280,9 +277,7 @@ export default function GridBuilder({
                 />
               </div>
               <div>
-                <label className="block text-xs text-gray-600 mb-1">
-                  Hasta
-                </label>
+                <label className="block text-xs text-gray-600 mb-1">Hasta</label>
                 <input
                   type="date"
                   value={endDate}
@@ -294,13 +289,10 @@ export default function GridBuilder({
           </div>
         )}
 
-        {/* Selects dinámicos */}
         {selectFilters &&
           selectFilters.map((field) => (
             <div className="mb-4" key={field}>
-              <label className="block mb-1 text-sm font-medium">
-                {formatKeyLabel(field)}:
-              </label>
+              <label className="block mb-1 text-sm font-medium">{formatKeyLabel(field)}:</label>
               <select
                 value={selectedFilters[field] || ""}
                 onChange={(e) =>
@@ -327,27 +319,35 @@ export default function GridBuilder({
         <p>Cargando datos...</p>
       ) : (
         <div>
-          {/* Vista de tabla para escritorio con márgenes chicos */}
           <div className="hidden md:block w-full max-w-screen-2xl mx-auto px-2">
             <table className="table-fixed w-full border border-gray-300 rounded-lg shadow-md text-sm">
               <thead className="bg-gray-200">
                 <tr>
                   <th colSpan={columns.length + 1} className="p-2 border-b">
                     <div className="flex items-center justify-between">
-                      {showReload ? (
-                        <button
-                          onClick={() => {
-                            Cookies.set("id_header", "0");
-                            window.location.reload();
-                          }}
-                          className="bg-transparent text-gray-600 hover:text-gray-900"
-                          title="Regresar a ver todos los registros"
-                        >
-                          <ArrowLeftIcon className="w-5 h-5" />
-                        </button>
-                      ) : (
-                        <span />
-                      )}
+                      <div className="flex items-center gap-2">
+                        {showReload && (
+                          <button
+                            onClick={() => {
+                              Cookies.set("id_header", "0");
+                              window.location.reload();
+                            }}
+                            className="bg-transparent text-gray-600 hover:text-gray-900"
+                            title="Regresar a ver todos los registros"
+                          >
+                            <ArrowLeftIcon className="w-5 h-5" />
+                          </button>
+                        )}
+                        {modal && (
+                          <button
+                            onClick={() => setShowFormModal(true)}
+                            className="bg-yellow-300 p-1 rounded text-gray-700 hover:bg-yellow-400"
+                            title="Nueva entrada"
+                          >
+                            <PlusIcon className="w-5 h-5" />
+                          </button>
+                        )}
+                      </div>
                       <div className="flex items-center gap-2">
                         <button
                           onClick={handleExcelExport}
@@ -432,8 +432,6 @@ export default function GridBuilder({
                 ))}
               </tbody>
             </table>
-
-            {/* Paginación */}
             <div className="flex justify-center mt-4 gap-2 text-sm">
               <button
                 className="px-2 py-1 bg-gray-200 rounded disabled:opacity-50"
@@ -446,9 +444,7 @@ export default function GridBuilder({
                 <button
                   key={i}
                   className={`px-3 py-1 rounded ${
-                    currentPage === i + 1
-                      ? "bg-blue-500 text-white"
-                      : "bg-gray-200"
+                    currentPage === i + 1 ? "bg-blue-500 text-white" : "bg-gray-200"
                   }`}
                   onClick={() => setCurrentPage(i + 1)}
                 >
@@ -466,84 +462,84 @@ export default function GridBuilder({
               </button>
             </div>
           </div>
-
-          {/* Vista móvil (opcional) */}
           <div className="block md:hidden">
-            {/* ... misma lógica en "cards" para móviles ... */}
+            {/* ... lógica similar en "cards" para móviles ... */}
           </div>
         </div>
       )}
-      
-{/* Modal de detalles */}
-{selectedRow && (
-  <div
-    className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm p-4"
-    onClick={() => setSelectedRow(null)}
-  >
-    <div
-      className="relative bg-gray-50 w-full max-w-md p-8 rounded-xl border border-gray-200"
-      onClick={(e) => e.stopPropagation()}
-    >
-      {/* Header con ícono de edición a la izquierda, título centrado e ícono de eliminación a la derecha */}
-      <div className="flex items-center justify-between mb-8">
-        {/* Botón de edición (antes del h2) */}
-        <button
-          onClick={() => console.log("Editar registro", selectedRow)}
-          className="text-gray-600 hover:text-gray-800"
-          title="Editar registro"
-        >
-          <PencilIcon className="w-5 h-5" />
-        </button>
-
-        {/* Título del modal */}
-        <h2 className="text-xl font-semibold tracking-tight text-gray-900">
-          Detalles del Registro
-        </h2>
-
-        {/* Botón de eliminación (después del h2) */}
-        <button
-          onClick={() => console.log("Eliminar registro", selectedRow)}
-          className="text-red-600 hover:text-red-800"
-          title="Eliminar registro"
-        >
-          <TrashIcon className="w-5 h-5" />
-        </button>
-      </div>
-
-      {/* Contenido de los detalles */}
-      <div className="flex flex-col gap-6">
-        {Object.entries(selectedRow)
-          .filter(([key, value]) => {
-            const excluded = ["ArchCoti", "NombreCoti", "ArchFact", "NombreFact"];
-            if (excluded.includes(key)) return false;
-            if (key.toLowerCase().includes("id")) return false;
-            if (value === null || value === undefined || value === "") return false;
-            return true;
-          })
-          .map(([key, value]) => (
-            <div key={key}>
-              <p className="text-xs uppercase tracking-widest text-gray-500 mb-1">
-                {formatKeyLabel(key)}
-              </p>
-              <p className="text-sm text-gray-800 whitespace-pre-wrap break-words">
-                {String(value)}
-              </p>
-            </div>
-          ))}
-      </div>
-
-      {/* Botón para cerrar el modal */}
-      <div className="mt-10 flex justify-center">
-        <button
+      {selectedRow && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm p-4"
           onClick={() => setSelectedRow(null)}
-          className="text-sm text-red-500 border border-red-500 px-4 py-2 rounded-full hover:bg-red-50 transition"
         >
-          Cerrar
-        </button>
-      </div>
-    </div>
-  </div>
-)}
+          <div
+            className="relative bg-gray-50 w-full max-w-md p-8 rounded-xl border border-gray-200"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-8">
+              <button
+                onClick={() => console.log("Editar registro", selectedRow)}
+                className="text-gray-600 hover:text-gray-800"
+                title="Editar registro"
+              >
+                <PencilIcon className="w-5 h-5" />
+              </button>
+              <h2 className="text-xl font-semibold tracking-tight text-gray-900">
+                Detalles del Registro
+              </h2>
+              <button
+                onClick={() => console.log("Eliminar registro", selectedRow)}
+                className="text-red-600 hover:text-red-800"
+                title="Eliminar registro"
+              >
+                <TrashIcon className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex flex-col gap-6">
+              {Object.entries(selectedRow)
+                .filter(([key, value]) => {
+                  const excluded = ["ArchCoti", "NombreCoti", "ArchFact", "NombreFact"];
+                  if (excluded.includes(key)) return false;
+                  if (key.toLowerCase().includes("id")) return false;
+                  if (value === null || value === undefined || value === "") return false;
+                  return true;
+                })
+                .map(([key, value]) => (
+                  <div key={key}>
+                    <p className="text-xs uppercase tracking-widest text-gray-500 mb-1">
+                      {formatKeyLabel(key)}
+                    </p>
+                    <p className="text-sm text-gray-800 whitespace-pre-wrap break-words">
+                      {String(value)}
+                    </p>
+                  </div>
+                ))}
+            </div>
+            <div className="mt-10 flex justify-center">
+              <button
+                onClick={() => setSelectedRow(null)}
+                className="text-sm text-red-500 border border-red-500 px-4 py-2 rounded-full hover:bg-red-50 transition"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showFormModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="relative bg-white w-full max-w-4xl max-h-[90vh] rounded-lg shadow-lg p-6 overflow-auto">
+            <button
+              onClick={() => setShowFormModal(false)}
+              className="absolute top-2 right-2 text-gray-500 hover:text-red-600"
+              title="Cerrar Formulario"
+            >
+              <XMarkIcon className="w-6 h-6" />
+            </button>
+            <DynamicForm num={modal.num} subcarpeta={modal.subcarpeta} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
