@@ -7,6 +7,8 @@ import {
   ArrowLeftIcon,
   FunnelIcon,
   XMarkIcon,
+  PencilIcon,  // Ícono de editar
+  TrashIcon,   // Ícono de bote de basura
 } from "@heroicons/react/24/outline";
 import Cookies from "js-cookie";
 import { FaFileExcel } from "react-icons/fa";
@@ -393,39 +395,39 @@ export default function GridBuilder({
                       </td>
                     ))}
                     <td className="p-2 border-b whitespace-normal break-words">
-  <div className="flex flex-wrap gap-2">
-    {item.NombreFact && (
-      <button
-        className="px-2 py-1 bg-green-500 text-white rounded text-xs"
-        onClick={(e) => {
-          e.stopPropagation();
-          const path = `/documents/${item.NombreFact}`;
-          const link = document.createElement("a");
-          link.href = path;
-          link.download = item.NombreFact;
-          link.click();
-        }}
-      >
-        Factura
-      </button>
-    )}
-    {item.NombreCoti && (
-      <button
-        className="px-2 py-1 bg-blue-500 text-white rounded text-xs"
-        onClick={(e) => {
-          e.stopPropagation();
-          const path = `/documents/${item.NombreCoti}`;
-          const link = document.createElement("a");
-          link.href = path;
-          link.download = item.NombreCoti;
-          link.click();
-        }}
-      >
-        Cotización
-      </button>
-    )}
-  </div>
-</td>
+                      <div className="flex flex-wrap gap-2">
+                        {item.NombreFact && (
+                          <button
+                            className="px-2 py-1 bg-green-500 text-white rounded text-xs"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const path = `/documents/${item.NombreFact}`;
+                              const link = document.createElement("a");
+                              link.href = path;
+                              link.download = item.NombreFact;
+                              link.click();
+                            }}
+                          >
+                            Factura
+                          </button>
+                        )}
+                        {item.NombreCoti && (
+                          <button
+                            className="px-2 py-1 bg-blue-500 text-white rounded text-xs"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const path = `/documents/${item.NombreCoti}`;
+                              const link = document.createElement("a");
+                              link.href = path;
+                              link.download = item.NombreCoti;
+                              link.click();
+                            }}
+                          >
+                            Cotización
+                          </button>
+                        )}
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -472,50 +474,76 @@ export default function GridBuilder({
         </div>
       )}
       
-      {/* Modal de detalles */}
-      {selectedRow && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm p-4"
-          onClick={() => setSelectedRow(null)}
+{/* Modal de detalles */}
+{selectedRow && (
+  <div
+    className="fixed inset-0 z-50 flex items-center justify-center bg-white/80 backdrop-blur-sm p-4"
+    onClick={() => setSelectedRow(null)}
+  >
+    <div
+      className="relative bg-gray-50 w-full max-w-md p-8 rounded-xl border border-gray-200"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {/* Header con ícono de edición a la izquierda, título centrado e ícono de eliminación a la derecha */}
+      <div className="flex items-center justify-between mb-8">
+        {/* Botón de edición (antes del h2) */}
+        <button
+          onClick={() => console.log("Editar registro", selectedRow)}
+          className="text-gray-600 hover:text-gray-800"
+          title="Editar registro"
         >
-          <div
-            className="bg-gray-50 w-full max-w-md p-8 rounded-xl border border-gray-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 className="text-center text-xl font-semibold tracking-tight text-gray-900 mb-8">
-              Detalles del Registro
-            </h2>
-            <div className="flex flex-col gap-6">
-              {Object.entries(selectedRow)
-                .filter(([key, value]) => {
-                  const excluded = ["ArchCoti", "NombreCoti", "ArchFact", "NombreFact"];
-                  if (excluded.includes(key)) return false;
-                  if (key.toLowerCase().includes("id")) return false;
-                  if (value === null || value === undefined || value === "") return false;
-                  return true;
-                })
-                .map(([key, value]) => (
-                  <div key={key}>
-                    <p className="text-xs uppercase tracking-widest text-gray-500 mb-1">
-                      {formatKeyLabel(key)}
-                    </p>
-                    <p className="text-sm text-gray-800 whitespace-pre-wrap break-words">
-                      {String(value)}
-                    </p>
-                  </div>
-                ))}
+          <PencilIcon className="w-5 h-5" />
+        </button>
+
+        {/* Título del modal */}
+        <h2 className="text-xl font-semibold tracking-tight text-gray-900">
+          Detalles del Registro
+        </h2>
+
+        {/* Botón de eliminación (después del h2) */}
+        <button
+          onClick={() => console.log("Eliminar registro", selectedRow)}
+          className="text-red-600 hover:text-red-800"
+          title="Eliminar registro"
+        >
+          <TrashIcon className="w-5 h-5" />
+        </button>
+      </div>
+
+      {/* Contenido de los detalles */}
+      <div className="flex flex-col gap-6">
+        {Object.entries(selectedRow)
+          .filter(([key, value]) => {
+            const excluded = ["ArchCoti", "NombreCoti", "ArchFact", "NombreFact"];
+            if (excluded.includes(key)) return false;
+            if (key.toLowerCase().includes("id")) return false;
+            if (value === null || value === undefined || value === "") return false;
+            return true;
+          })
+          .map(([key, value]) => (
+            <div key={key}>
+              <p className="text-xs uppercase tracking-widest text-gray-500 mb-1">
+                {formatKeyLabel(key)}
+              </p>
+              <p className="text-sm text-gray-800 whitespace-pre-wrap break-words">
+                {String(value)}
+              </p>
             </div>
-            <div className="mt-10 flex justify-center">
-              <button
-                onClick={() => setSelectedRow(null)}
-                className="text-sm text-red-500 border border-red-500 px-4 py-2 rounded-full hover:bg-red-50 transition"
-              >
-                Cerrar
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          ))}
+      </div>
+
+      {/* Botón para cerrar el modal */}
+      <div className="mt-10 flex justify-center">
+        <button
+          onClick={() => setSelectedRow(null)}
+          className="text-sm text-red-500 border border-red-500 px-4 py-2 rounded-full hover:bg-red-50 transition"
+        >
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }
