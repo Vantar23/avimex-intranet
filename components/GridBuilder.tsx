@@ -332,7 +332,7 @@ export default function GridBuilder({
                               Cookies.set("id_header", "0");
                               window.location.reload();
                             }}
-                            className="bg-transparent text-gray-600 hover:text-gray-900"
+                            className="bg-transparent p-1 rounded text-gray-600 hover:text-white hover:bg-green-500"
                             title="Regresar a ver todos los registros"
                           >
                             <ArrowLeftIcon className="w-5 h-5" />
@@ -341,7 +341,7 @@ export default function GridBuilder({
                         {modal && (
                           <button
                             onClick={() => setShowFormModal(true)}
-                            className="bg-yellow-300 p-1 rounded text-gray-700 hover:bg-yellow-400"
+                            className="bg-green p-1 rounded text-gray-700 hover:text-white hover:bg-green-500"
                             title="Nueva entrada"
                           >
                             <PlusIcon className="w-5 h-5" />
@@ -351,14 +351,14 @@ export default function GridBuilder({
                       <div className="flex items-center gap-2">
                         <button
                           onClick={handleExcelExport}
-                          className="bg-transparent text-green-500 hover:text-green-700"
+                          className="bg-transparent text-green-500 hover:text-white p-1 rounded hover:bg-green-500"
                           title="Exportar a Excel"
                         >
                           <FaFileExcel className="w-5 h-5" />
                         </button>
                         <button
                           onClick={() => setShowFilters((prev) => !prev)}
-                          className="bg-transparent text-gray-600 hover:text-gray-900"
+                          className="bg-transparent text-gray-600 hover:text-white p-1 rounded hover:bg-green-500"
                           title="Mostrar/Ocultar Filtros"
                         >
                           <FunnelIcon className="w-5 h-5" />
@@ -444,7 +444,7 @@ export default function GridBuilder({
                 <button
                   key={i}
                   className={`px-3 py-1 rounded ${
-                    currentPage === i + 1 ? "bg-blue-500 text-white" : "bg-gray-200"
+                    currentPage === i + 1 ? "bg-green-500 text-white" : "bg-gray-200"
                   }`}
                   onClick={() => setCurrentPage(i + 1)}
                 >
@@ -479,20 +479,20 @@ export default function GridBuilder({
             <div className="flex items-center justify-between mb-8">
               <button
                 onClick={() => console.log("Editar registro", selectedRow)}
-                className="text-gray-600 hover:text-gray-800"
+                className="text-gray-600 hover:text-white p-1 rounded hover:bg-green-500"
                 title="Editar registro"
               >
                 <PencilIcon className="w-5 h-5" />
               </button>
-              <h2 className="text-xl font-semibold tracking-tight text-gray-900">
+              <h2 className="text-xl font-semibold tracking-tight text-gray-900 ">
                 Detalles del Registro
               </h2>
               <button
                 onClick={() => console.log("Eliminar registro", selectedRow)}
-                className="text-red-600 hover:text-red-800"
+                className="text-red-600 hover:text-red-800 hover:text-white p-1 rounded hover:bg-green-500"
                 title="Eliminar registro"
               >
-                <TrashIcon className="w-5 h-5" />
+                <TrashIcon className="w-5 h-5 hover:text-white" />
               </button>
             </div>
             <div className="flex flex-col gap-6">
