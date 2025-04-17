@@ -39,7 +39,7 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
   const [formConfig, setFormConfig] = useState<FormConfig | null>(null);
   const [formData, setFormData] = useState<{ [key: string]: any }>({});
   const [fileData, setFileData] = useState<{ [key: string]: File }>({});
-  // Estado para mostrar la rueda de carga y evitar múltiples envíos
+  // Estado para mostrar el loader y evitar múltiples envíos
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -60,7 +60,6 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
   };
 
   const handleChange = (name: string, value: any) => {
-    // Si el valor contiene patrones sospechosos, se muestra una alerta y no se guarda
     if (detectXSS(value)) {
       alert("¡Se ha detectado un posible ataque de Cross Scripting!");
       return;
@@ -150,8 +149,6 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
         { headers: { "Content-Type": "application/json" } }
       );
       console.log("Response from proxy:", response.data);
-      //alert("Datos enviados correctamente.");
-
       // Refrescar la página después de un envío exitoso
       window.location.reload();
     } catch (error: any) {
@@ -193,7 +190,6 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
             justifyContent: "center",
           }}
         >
-          {/* GridLoader muestra cuadrículas animadas como indicador de carga */}
           <GridLoader color="#000" size={15} />
         </div>
       )}
@@ -212,7 +208,13 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
         >
           {formConfig.title}
         </h2>
-        <p style={{ gridColumn: "span 2", fontSize: "16px", marginBottom: "20px" }}>
+        <p
+          style={{
+            gridColumn: "span 2",
+            fontSize: "16px",
+            marginBottom: "20px",
+          }}
+        >
           {formConfig.description}
         </p>
 
@@ -222,7 +224,13 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
             const { fatherField, childField } = field;
             return (
               <div key={fatherField.name} style={{ display: "flex", flexDirection: "column" }}>
-                <label style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "6px" }}>
+                <label
+                  style={{
+                    fontSize: "16px",
+                    fontWeight: "bold",
+                    marginBottom: "6px",
+                  }}
+                >
                   {fatherField.label}
                 </label>
                 <input
@@ -232,8 +240,14 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
                   required={fatherField.required}
                   value={formData[fatherField.name] ?? ""}
                   onChange={(e) => handleChange(fatherField.name, e.target.value)}
-                  style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px" }}
+                  style={{
+                    width: "100%",
+                    padding: "10px",
+                    border: "1px solid #ccc",
+                    borderRadius: "6px",
+                  }}
                 />
+                {/* Muestra el childField solo si se completó el campo padre */}
                 {formData[fatherField.name] && (
                   <div
                     style={{
@@ -243,10 +257,43 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
                       flexDirection: "column",
                     }}
                   >
-                    <label style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "6px" }}>
+                    <label
+                      style={{
+                        fontSize: "16px",
+                        fontWeight: "bold",
+                        marginBottom: "6px",
+                      }}
+                    >
                       {childField.label}
                     </label>
-                    {/* Aquí puedes agregar el renderizado específico para childField */}
+                    {childField.type === "file" ? (
+                      <input
+                        type="file"
+                        accept={childField.accept?.join(",")}
+                        onChange={(e) => handleFileChange(childField.name, e.target.files?.[0])}
+                        style={{
+                          marginTop: "8px",
+                          display: "block",
+                          width: "100%",
+                        }}
+                        required={childField.required}
+                      />
+                    ) : (
+                      <input
+                        type={childField.type}
+                        name={childField.name}
+                        placeholder={childField.placeholder || ""}
+                        required={childField.required}
+                        value={formData[childField.name] ?? ""}
+                        onChange={(e) => handleChange(childField.name, e.target.value)}
+                        style={{
+                          width: "100%",
+                          padding: "10px",
+                          border: "1px solid #ccc",
+                          borderRadius: "6px",
+                        }}
+                      />
+                    )}
                   </div>
                 )}
               </div>
@@ -272,7 +319,13 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
                   const disabledInput = !!formData[otherFieldName];
                   return (
                     <div key={eitherField.name} style={{ display: "flex", flexDirection: "column" }}>
-                      <label style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "6px" }}>
+                      <label
+                        style={{
+                          fontSize: "16px",
+                          fontWeight: "bold",
+                          marginBottom: "6px",
+                        }}
+                      >
                         {eitherField.label}
                       </label>
                       {eitherField.type === "ComboComponent" ? (
@@ -333,7 +386,13 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
           // Resto de campos estándar
           return (
             <div key={field.name} style={{ display: "flex", flexDirection: "column" }}>
-              <label style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "6px" }}>
+              <label
+                style={{
+                  fontSize: "16px",
+                  fontWeight: "bold",
+                  marginBottom: "6px",
+                }}
+              >
                 {field.label}
               </label>
               {["text", "email", "password", "number", "date"].includes(field.type) ? (
@@ -368,7 +427,12 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
                       handleChange(field.name, e.target.value);
                     }
                   }}
-                  style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px" }}
+                  style={{
+                    width: "100%",
+                    padding: "10px",
+                    border: "1px solid #ccc",
+                    borderRadius: "6px",
+                  }}
                 />
               ) : field.type === "textarea" ? (
                 <textarea
@@ -388,7 +452,12 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
                 <select
                   name={field.name}
                   onChange={(e) => handleChange(field.name, e.target.value)}
-                  style={{ width: "100%", padding: "10px", border: "1px solid #ccc", borderRadius: "6px" }}
+                  style={{
+                    width: "100%",
+                    padding: "10px",
+                    border: "1px solid #ccc",
+                    borderRadius: "6px",
+                  }}
                 >
                   {field.options?.map((option) => (
                     <option key={option.value} value={option.value}>
@@ -407,7 +476,12 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
                   type="file"
                   accept={field.accept?.join(",")}
                   onChange={(e) => handleFileChange(field.name, e.target.files?.[0])}
-                  style={{ marginTop: "8px", display: "block", width: "100%" }}
+                  style={{
+                    marginTop: "8px",
+                    display: "block",
+                    width: "100%",
+                  }}
+                  required={field.required}
                 />
               ) : field.type === "combo" && field.component === "ComboComponent" ? (
                 <ComboInput
@@ -417,13 +491,48 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
                 />
               ) : null}
 
-              {/* Si deseas usar "childField" en campos estándar, puedes manejarlo así: */}
+              {/* Renderiza childField en caso de tenerlo definido */}
               {field.childField && formData[field.name] && (
                 <div style={{ marginLeft: "20px", marginTop: "10px" }}>
-                  <label style={{ fontSize: "16px", fontWeight: "bold", marginBottom: "6px" }}>
+                  <label
+                    style={{
+                      fontSize: "16px",
+                      fontWeight: "bold",
+                      marginBottom: "6px",
+                    }}
+                  >
                     {field.childField.label}
                   </label>
-                  {/* Implementa aquí la lógica de renderizado para el childField si es necesario */}
+                  {field.childField.type === "file" ? (
+                    <input
+                      type="file"
+                      accept={field.childField.accept?.join(",")}
+                      onChange={(e) =>
+                        handleFileChange(field.childField.name, e.target.files?.[0])
+                      }
+                      style={{
+                        marginTop: "8px",
+                        display: "block",
+                        width: "100%",
+                      }}
+                      required={field.childField.required}
+                    />
+                  ) : (
+                    <input
+                      type={field.childField.type}
+                      name={field.childField.name}
+                      placeholder={field.childField.placeholder || ""}
+                      required={field.childField.required}
+                      value={formData[field.childField.name] ?? ""}
+                      onChange={(e) => handleChange(field.childField.name, e.target.value)}
+                      style={{
+                        width: "100%",
+                        padding: "10px",
+                        border: "1px solid #ccc",
+                        borderRadius: "6px",
+                      }}
+                    />
+                  )}
                 </div>
               )}
             </div>
