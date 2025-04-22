@@ -492,49 +492,51 @@ const DynamicForm: React.FC<DynamicFormProps> = ({ num, subcarpeta }) => {
               ) : null}
 
               {/* Renderiza childField en caso de tenerlo definido */}
-              {field.childField && formData[field.name] && (
-                <div style={{ marginLeft: "20px", marginTop: "10px" }}>
-                  <label
-                    style={{
-                      fontSize: "16px",
-                      fontWeight: "bold",
-                      marginBottom: "6px",
-                    }}
-                  >
-                    {field.childField.label}
-                  </label>
-                  {field.childField.type === "file" ? (
-                    <input
-                      type="file"
-                      accept={field.childField.accept?.join(",")}
-                      onChange={(e) =>
-                        handleFileChange(field.childField.name, e.target.files?.[0])
-                      }
+              {field.childField && formData[field.name] && (() => {
+                const child = field.childField!;
+                return (
+                  <div style={{ marginLeft: "20px", marginTop: "10px" }}>
+                    <label
                       style={{
-                        marginTop: "8px",
-                        display: "block",
-                        width: "100%",
+                        fontSize: "16px",
+                        fontWeight: "bold",
+                        marginBottom: "6px",
                       }}
-                      required={field.childField.required}
-                    />
-                  ) : (
-                    <input
-                      type={field.childField.type}
-                      name={field.childField.name}
-                      placeholder={field.childField.placeholder || ""}
-                      required={field.childField.required}
-                      value={formData[field.childField.name] ?? ""}
-                      onChange={(e) => handleChange(field.childField.name, e.target.value)}
-                      style={{
-                        width: "100%",
-                        padding: "10px",
-                        border: "1px solid #ccc",
-                        borderRadius: "6px",
-                      }}
-                    />
-                  )}
-                </div>
-              )}
+                    >
+                      {child.label}
+                    </label>
+                    {child.type === "file" ? (
+                      <input
+                        type="file"
+                        accept={child.accept?.join(",")}
+                        onChange={(e) => handleFileChange(child.name, e.target.files?.[0])}
+                        style={{
+                          marginTop: "8px",
+                          display: "block",
+                          width: "100%",
+                        }}
+                        required={child.required}
+                      />
+                    ) : (
+                      <input
+                        type={child.type}
+                        name={child.name}
+                        placeholder={child.placeholder || ""}
+                        required={child.required}
+                        value={formData[child.name] ?? ""}
+                        onChange={(e) => handleChange(child.name, e.target.value)}
+                        style={{
+                          width: "100%",
+                          padding: "10px",
+                          border: "1px solid #ccc",
+                          borderRadius: "6px",
+                        }}
+                      />
+                    )}
+                  </div>
+                );
+              })()}
+
             </div>
           );
         })}
