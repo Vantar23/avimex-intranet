@@ -319,54 +319,53 @@ export default function GridBuilder({
         <p>Cargando datos...</p>
       ) : (
         <div>
-          <div className="hidden md:block w-full max-w-screen-2xl mx-auto px-2">
-            <table className="table-fixed w-full border border-gray-300 rounded-lg shadow-md text-sm">
-              <thead className="bg-gray-200">
-                <tr>
-                  <th colSpan={columns.length + 1} className="p-2 border-b">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        {showReload && (
-                          <button
-                            onClick={() => {
-                              Cookies.set("id_header", "0");
-                              window.location.reload();
-                            }}
-                            className="bg-transparent p-1 rounded text-gray-600 hover:text-white hover:bg-green-500"
-                            title="Regresar a ver todos los registros"
-                          >
-                            <ArrowLeftIcon className="w-5 h-5" />
-                          </button>
-                        )}
-                        {modal && (
-                          <button
-                            onClick={() => setShowFormModal(true)}
-                            className="bg-green p-1 rounded text-gray-700 hover:text-white hover:bg-green-500"
-                            title="Nueva entrada"
-                          >
-                            <PlusIcon className="w-5 h-5" />
-                          </button>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={handleExcelExport}
-                          className="bg-transparent text-green-500 hover:text-white p-1 rounded hover:bg-green-500"
-                          title="Exportar a Excel"
-                        >
-                          <FaFileExcel className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => setShowFilters((prev) => !prev)}
-                          className="bg-transparent text-gray-600 hover:text-white p-1 rounded hover:bg-green-500"
-                          title="Mostrar/Ocultar Filtros"
-                        >
-                          <FunnelIcon className="w-5 h-5" />
-                        </button>
-                      </div>
-                    </div>
-                  </th>
-                </tr>
+          <div className="hidden md:block w-full max-w-screen mx-auto">
+            {/* Controles superiores */}
+            <div className="flex items-center justify-between py-3">
+              <div className="flex items-center gap-2">
+                {showReload && (
+                  <button
+                    onClick={() => {
+                      Cookies.set("id_header", "0");
+                      window.location.reload();
+                    }}
+                    className="bg-transparent p-1 rounded text-gray-600 hover:text-white hover:bg-green-500"
+                    title="Regresar a ver todos los registros"
+                  >
+                    <ArrowLeftIcon className="w-5 h-5" />
+                  </button>
+                )}
+                {modal && (
+                  <button
+                    onClick={() => setShowFormModal(true)}
+                    className="bg-green p-1 rounded text-gray-700 hover:text-white hover:bg-green-500"
+                    title="Nueva entrada"
+                  >
+                    <PlusIcon className="w-5 h-5" />
+                  </button>
+                )}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleExcelExport}
+                  className="bg-transparent text-green-500 hover:text-white p-1 rounded hover:bg-green-500"
+                  title="Exportar a Excel"
+                >
+                  <FaFileExcel className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => setShowFilters((prev) => !prev)}
+                  className="bg-transparent text-gray-600 hover:text-white p-1 rounded hover:bg-green-500"
+                  title="Mostrar/Ocultar Filtros"
+                >
+                  <FunnelIcon className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Tabla */}
+            <table className="table-fixed text-white bg-green-600   rounded-lg w-full rounded-lg text-sm">
+              <thead className="shadow-sm ">
                 <tr>
                   {columns.map((col) => (
                     <th
@@ -379,7 +378,8 @@ export default function GridBuilder({
                   <th className="p-2 text-left border-b">Archivos</th>
                 </tr>
               </thead>
-              <tbody>
+
+              <tbody className="text-black bg-white ">
                 {paginatedData.map((item, idx) => (
                   <tr
                     key={idx}
