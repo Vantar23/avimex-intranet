@@ -40,17 +40,33 @@ export async function GET(req: NextRequest) {
     const dataRes = await fetch(apiUrl, { method: 'GET', headers });
     const cloneRes = dataRes.clone();
 
-    let data;
+    const statusCode = dataRes.status;
+    const statusText = dataRes.statusText;
+
+    let text = '';
     try {
-      data = await dataRes.json();
+      text = await cloneRes.text();
     } catch (e) {
-      const text = await cloneRes.text();
-      data = { error: text };
+      console.error("❌ No se pudo leer el texto de la respuesta del backend:", e);
+    }
+
+    let data;
+    if (!text.trim()) {
+      data = { error: "Respuesta vacía del servidor" };
+      console.error("❌ Respuesta vacía del backend");
+    } else {
+      try {
+        data = JSON.parse(text);
+      } catch (e) {
+        data = { error: text };
+        console.error("❌ Error al parsear JSON:", e);
+        console.error("❌ Respuesta como texto:", text);
+      }
     }
 
     if (!dataRes.ok) {
       let additionalHeaders: { [key: string]: string } = {};
-      if (dataRes.status === 401) {
+      if (statusCode === 401) {
         const expiredCookies = [
           serialize("session", "", {
             httpOnly: true,
@@ -76,13 +92,17 @@ export async function GET(req: NextRequest) {
         ].join(", ");
         additionalHeaders["Set-Cookie"] = expiredCookies;
       }
+
+      console.error(`⚠️ Error HTTP desde el backend (${statusCode} ${statusText})`);
+      console.error("🧾 Respuesta completa:", text);
+
       return NextResponse.json(
-        { error: data.error || "Error desconocido", originalStatus: dataRes.status },
+        { error: data.error || "Error desconocido", originalStatus: statusCode },
         { status: 200, headers: additionalHeaders }
       );
     }
 
-    // 🔄 Verificar si el backend envió un nuevo id_header en la raíz del objeto
+    // 🔄 Verificar si el backend envió un nuevo id_header
     if (typeof data.id_header !== "undefined" && data.id_header.toString() !== currentParam) {
       const newId = data.id_header.toString();
       console.log(`🔄 Actualizando id_header: "${currentParam}" -> "${newId}"`);

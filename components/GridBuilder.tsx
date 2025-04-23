@@ -15,6 +15,7 @@ import {
 import Cookies from "js-cookie";
 import { FaFileExcel } from "react-icons/fa";
 import DynamicForm from "@/components/FormBuilder";
+import SearchBar from "@/components/ui/SearchBar";
 
 // Ahora modal siempre se espera dentro de props
 interface GridBuilderModalConfig {
@@ -44,12 +45,42 @@ function parseDate(dateString: string): Date {
   return new Date(dateString);
 }
 
+function parseCustomDate(fechaTexto: string): Date {
+  // Quita espacios dobles o caracteres raros
+  const clean = fechaTexto.replace(/\s+/g, " ").trim();
+
+  // Se espera formato: "dd/MM/yyyy hh:mm:ss a. m." (hora 12h con AM/PM en español)
+  const regex = /^(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2}):(\d{2}) (a\. m\.|p\. m\.)$/i;
+  const match = clean.match(regex);
+
+  if (!match) return new Date("Invalid Date");
+
+  let [, day, month, year, hour, minute, second, meridian] = match;
+  let h = parseInt(hour);
+  if (meridian.toLowerCase().includes("p") && h < 12) h += 12;
+  if (meridian.toLowerCase().includes("a") && h === 12) h = 0;
+
+  return new Date(
+    parseInt(year),
+    parseInt(month) - 1,
+    parseInt(day),
+    h,
+    parseInt(minute),
+    parseInt(second)
+  );
+}
+
+
 export default function GridBuilder({
   apiUrl,
   onRowClick,
   selectFilters,
   modal,
 }: GridBuilderProps) {
+  const [searchColumn, setSearchColumn] = useState<string | null>(null);
+  const [searchMode, setSearchMode] = useState<"typing" | "select" | "date-range">("typing");
+  const [searchValue, setSearchValue] = useState(""); // reemplaza globalSearch si quieres unificar
+
   const [columns, setColumns] = useState<string[]>([]);
   const [data, setData] = useState<any[]>([]);
   const [originalData, setOriginalData] = useState<any[]>([]);
@@ -165,36 +196,41 @@ export default function GridBuilder({
   };
 
   useEffect(() => {
-    const search = globalSearch.trim().toLowerCase();
+    const search = searchValue.trim().toLowerCase();
+  
     const filtered = originalData.filter((row) => {
-      const matchesSearch =
-        search === "" ||
-        Object.entries(row).some(([, value]) =>
-          String(value).toLowerCase().includes(search)
-        );
+      let matchesSearch = true;
+  
+      if (searchValue !== "") {
+        if (searchMode === "date-range" && searchColumn) {
+          const [start, end] = searchValue.split("|");
+  
+          const rawDate = row[searchColumn];
+          const rowDate = rawDate ? parseCustomDate(rawDate) : null;
 
-      let matchesDate = true;
-      if (startDate || endDate) {
-        const fechaKey = Object.keys(row).find(
-          (key) => key.toLowerCase() === "fecha"
-        );
-        if (fechaKey && row[fechaKey] && typeof row[fechaKey] === "string") {
-          const rowDateStr = row[fechaKey].split("T")[0];
-          const rowDate = new Date(rowDateStr);
-          if (startDate) {
-            const start = parseDate(startDate);
-            if (rowDate < start) matchesDate = false;
-          }
-          if (endDate) {
-            const end = parseDate(endDate);
-            end.setHours(23, 59, 59, 999);
-            if (rowDate > end) matchesDate = false;
+  
+          if (rowDate) {
+            const fromDate = start ? new Date(start) : null;
+            const toDate = end ? new Date(end) : null;
+  
+            if (fromDate && rowDate < fromDate) matchesSearch = false;
+            if (toDate) {
+              toDate.setHours(23, 59, 59, 999); // incluir todo el día
+              if (rowDate > toDate) matchesSearch = false;
+            }
+          } else {
+            matchesSearch = false;
           }
         } else {
-          matchesDate = false;
+          matchesSearch =
+            searchColumn
+              ? String(row[searchColumn] ?? "").toLowerCase().includes(search)
+              : Object.values(row).some((v) =>
+                  String(v).toLowerCase().includes(search)
+                );
         }
       }
-
+  
       let matchesSelect = true;
       if (selectFilters) {
         selectFilters.forEach((field) => {
@@ -203,19 +239,14 @@ export default function GridBuilder({
           }
         });
       }
-      return matchesSearch && matchesDate && matchesSelect;
+  
+      return matchesSearch && matchesSelect;
     });
-
+  
     setData(filtered);
     setCurrentPage(1);
-  }, [
-    globalSearch,
-    originalData,
-    startDate,
-    endDate,
-    selectedFilters,
-    selectFilters,
-  ]);
+  }, [searchValue, originalData, searchColumn, searchMode, selectedFilters, selectFilters]);
+  
 
   const totalPages = Math.ceil(data.length / rowsPerPage);
   const paginatedData = data.slice(
@@ -319,6 +350,47 @@ export default function GridBuilder({
         <p>Cargando datos...</p>
       ) : (
         <div>
+          <div className="max-w-screen px-4 md:px-0 mb-2">
+          <div className="flex items-center gap-4">
+            <SearchBar
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              searchMode={searchMode}
+              selectOptions={
+                searchMode === "select" && searchColumn
+                  ? Array.from(
+                      new Set(
+                        originalData
+                          .map((row) => row[searchColumn])
+                          .filter((v) => v !== undefined && v !== null) // ✅ permitimos los vacíos
+                      )
+                    ).sort((a, b) => {
+                      if (a === "") return 1; // mueve vacío al final
+                      if (b === "") return -1;
+                      return a.localeCompare(b);
+                    })
+                  : []
+              }
+            />
+
+            {searchColumn && (
+              <button
+                onClick={() => {
+                  setSearchColumn(null);
+                  setGlobalSearch("");
+                }}
+                className="text-sm text-red-500 border border-red-500 px-3 py-2 rounded-full hover:bg-red-50 transition"
+              >
+                Salir de búsqueda por columna
+              </button>
+            )}
+          </div>
+          {searchColumn && (
+            <p className="text-sm text-gray-500 mt-1">
+              Filtrando por columna: <span className="font-semibold">{formatKeyLabel(searchColumn)}</span>
+            </p>
+          )}
+          </div>
           <div className="hidden md:block w-full max-w-screen mx-auto">
             {/* Controles superiores */}
             <div className="flex items-center justify-between py-3">
@@ -367,14 +439,54 @@ export default function GridBuilder({
             <table className="table-fixed text-white bg-green-600   rounded-lg w-full rounded-lg text-sm">
               <thead className="shadow-sm ">
                 <tr>
-                  {columns.map((col) => (
-                    <th
-                      key={col}
-                      className="p-2 text-left border-b whitespace-normal break-words"
-                    >
-                      {formatKeyLabel(col)}
-                    </th>
-                  ))}
+                {columns.map((col) => (
+                  <th
+                    key={col}
+                    onClick={() => {
+                      setSearchColumn(col);
+                    
+                      if (col.toLowerCase().includes("fecha")) {
+                        setSearchMode("date-range");
+                        return;
+                      }
+                    
+                      const rawValues = originalData.map((row) => row[col]);
+                    
+                      const validValues = rawValues.filter((v) => {
+                        if (v === null || v === undefined) return false;
+                        const str = String(v).trim();
+                        return str !== "" && str.toLowerCase() !== "null" && str.toLowerCase() !== "undefined";
+                      });
+                    
+                      const uniqueValues = Array.from(new Set(validValues));
+                    
+                      const isShortStringList = uniqueValues.every(
+                        (val) => typeof val === "string" && val.length <= 50
+                      );
+                    
+                      // No mostrar select si:
+                      // - No hay valores válidos
+                      // - Hay muy pocos valores válidos pero muchísimos vacíos
+                      const emptyCount = rawValues.length - validValues.length;
+                      const emptyRatio = emptyCount / rawValues.length;
+                    
+                      const showAsSelect =
+                        uniqueValues.length > 0 &&
+                        uniqueValues.length <= 20 &&
+                        isShortStringList &&
+                        emptyRatio < 0.8; // Si más del 80% está vacío, no uses select
+                    
+                      setSearchMode(showAsSelect ? "select" : "typing");
+                    }}
+                    
+                    className={`p-2 text-left border-b whitespace-normal break-words cursor-pointer select-none ${
+                      searchColumn === col ? "text-green-700 underline" : "hover:text-green-500"
+                    }`}
+                    title="Click para filtrar por esta columna"
+                  >
+                    {formatKeyLabel(col)}
+                  </th>
+                ))}
                   <th className="p-2 text-left border-b">Archivos</th>
                 </tr>
               </thead>
@@ -410,6 +522,7 @@ export default function GridBuilder({
                           >
                             Factura
                           </button>
+
                         )}
                         {item.NombreCoti && (
                           <button
@@ -568,3 +681,4 @@ export default function GridBuilder({
     </div>
   );
 }
+

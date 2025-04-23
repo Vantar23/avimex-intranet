@@ -11,7 +11,7 @@
     {
       "type": "grid",
       "props": {
-        "apiUrl": "http://avimexintranet.com/backend/api/Grid",
+        "apiUrl": "http://avimexintranet.com/backend/api/requisiciones",
         "selectFilters": ["proveedor", "NombreFact"],
         "modal": {
           "type": "dynamicForm",
