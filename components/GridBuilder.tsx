@@ -1,7 +1,7 @@
 // components/GridBuilder.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import axios from "axios";
 import { motion } from "framer-motion";
 import {
@@ -80,6 +80,7 @@ export default function GridBuilder({
   const [searchColumn, setSearchColumn] = useState<string | null>(null);
   const [searchMode, setSearchMode] = useState<"typing" | "select" | "date-range">("typing");
   const [searchValue, setSearchValue] = useState(""); // reemplaza globalSearch si quieres unificar
+  const [activeFilters, setActiveFilters] = useState<{ column: string; value: string }[]>([]);
 
   const [columns, setColumns] = useState<string[]>([]);
   const [data, setData] = useState<any[]>([]);
@@ -155,6 +156,26 @@ export default function GridBuilder({
     }
   }, [selectFilters]);
 
+  const handleAddFilter = () => {
+    if (!searchColumn || searchValue.trim() === "") return;
+  
+    const newFilter = { column: searchColumn, value: searchValue.trim() };
+  
+    if (!activeFilters.some(f => f.column === newFilter.column && f.value === newFilter.value)) {
+      setActiveFilters([...activeFilters, newFilter]);
+      setSearchValue("");
+    }
+  };
+  
+  const handleRemoveFilter = (filterToRemove: { column: string; value: string }) => {
+    setActiveFilters((prev) =>
+      prev.filter(
+        (f) => !(f.column === filterToRemove.column && f.value === filterToRemove.value)
+      )
+    );
+  };
+  
+
   const hasFechaField = originalData.some((row) =>
     Object.keys(row).some((key) => key.toLowerCase() === "fecha")
   );
@@ -196,58 +217,45 @@ export default function GridBuilder({
   };
 
   useEffect(() => {
-    const search = searchValue.trim().toLowerCase();
+    let filtered = [...originalData];
   
-    const filtered = originalData.filter((row) => {
-      let matchesSearch = true;
+    if (!searchColumn && globalSearch.trim() !== "") {
+      const lower = globalSearch.toLowerCase();
+      filtered = filtered.filter((row) =>
+        Object.values(row).some((val) =>
+          String(val ?? "").toLowerCase().includes(lower)
+        )
+      );
+    }
   
-      if (searchValue !== "") {
-        if (searchMode === "date-range" && searchColumn) {
-          const [start, end] = searchValue.split("|");
+    if (activeFilters.length > 0) {
+      filtered = filtered.filter((row) =>
+        activeFilters.every(({ column, value }) => {
+          const cell = String(row[column] ?? "").toLowerCase();
+          return cell.includes(value.toLowerCase());
+        })
+      );
+    }
   
-          const rawDate = row[searchColumn];
-          const rowDate = rawDate ? parseCustomDate(rawDate) : null;
-
-  
-          if (rowDate) {
-            const fromDate = start ? new Date(start) : null;
-            const toDate = end ? new Date(end) : null;
-  
-            if (fromDate && rowDate < fromDate) matchesSearch = false;
-            if (toDate) {
-              toDate.setHours(23, 59, 59, 999); // incluir todo el día
-              if (rowDate > toDate) matchesSearch = false;
-            }
-          } else {
-            matchesSearch = false;
-          }
-        } else {
-          matchesSearch =
-            searchColumn
-              ? String(row[searchColumn] ?? "").toLowerCase().includes(search)
-              : Object.values(row).some((v) =>
-                  String(v).toLowerCase().includes(search)
-                );
-        }
-      }
-  
-      let matchesSelect = true;
-      if (selectFilters) {
-        selectFilters.forEach((field) => {
-          if (selectedFilters[field] && row[field] !== selectedFilters[field]) {
-            matchesSelect = false;
-          }
-        });
-      }
-  
-      return matchesSearch && matchesSelect;
-    });
+    if (selectFilters) {
+      filtered = filtered.filter((row) =>
+        selectFilters.every((field) => {
+          return !selectedFilters[field] || row[field] === selectedFilters[field];
+        })
+      );
+    }
   
     setData(filtered);
     setCurrentPage(1);
-  }, [searchValue, originalData, searchColumn, searchMode, selectedFilters, selectFilters]);
+  }, [
+    originalData,
+    searchColumn,
+    globalSearch,
+    activeFilters,
+    JSON.stringify(selectedFilters),
+    JSON.stringify(selectFilters),
+  ]);
   
-
   const totalPages = Math.ceil(data.length / rowsPerPage);
   const paginatedData = data.slice(
     (currentPage - 1) * rowsPerPage,
@@ -350,40 +358,38 @@ export default function GridBuilder({
         <p>Cargando datos...</p>
       ) : (
         <div>
-          <div className="max-w-screen px-4 md:px-0 mb-2">
-          <div className="flex items-center gap-4">
-            <SearchBar
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-              searchMode={searchMode}
-              selectOptions={
-                searchMode === "select" && searchColumn
-                  ? Array.from(
-                      new Set(
-                        originalData
-                          .map((row) => row[searchColumn])
-                          .filter((v) => v !== undefined && v !== null) // ✅ permitimos los vacíos
-                      )
-                    ).sort((a, b) => {
-                      if (a === "") return 1; // mueve vacío al final
-                      if (b === "") return -1;
-                      return a.localeCompare(b);
-                    })
-                  : []
-              }
-            />
-
-            {searchColumn && (
-              <button
-                onClick={() => {
-                  setSearchColumn(null);
-                  setGlobalSearch("");
-                }}
-                className="text-sm text-red-500 border border-red-500 px-3 py-2 rounded-full hover:bg-red-50 transition"
-              >
-                Salir de búsqueda por columna
-              </button>
-            )}
+          <div className="w-full flex flex-col items-center justify-center px-4 md:px-0 mb-4">
+          <div className="w-full max-w-6xl flex flex-col items-center gap-3">
+          <SearchBar
+             value={searchColumn ? searchValue : globalSearch}
+             onChange={(e) => {
+               const newValue = e.target.value;
+               if (searchColumn) {
+                 setSearchValue(newValue);
+               } else {
+                 setGlobalSearch(newValue);
+               }
+             }}
+             onAddFilter={handleAddFilter}
+             filters={activeFilters}
+             onRemoveFilter={handleRemoveFilter}
+             searchMode={searchMode}
+            selectOptions={
+              searchMode === "select" && searchColumn
+                ? Array.from(
+                    new Set(
+                      data
+                        .map((row) => row[searchColumn])
+                        .filter((v) => v !== undefined && v !== null)
+                    )
+                  ).sort((a, b) => {
+                    if (a === "") return 1;
+                    if (b === "") return -1;
+                    return a.localeCompare(b);
+                  })
+                : []
+            }            
+          />
           </div>
           {searchColumn && (
             <p className="text-sm text-gray-500 mt-1">
@@ -443,6 +449,14 @@ export default function GridBuilder({
                   <th
                     key={col}
                     onClick={() => {
+                      if (searchColumn === col) {
+                        // Si se vuelve a hacer clic en la misma columna, salir del modo búsqueda por columna
+                        setSearchColumn(null);
+                        setSearchValue("");
+                        setSearchMode("typing");
+                        return;
+                      }
+                    
                       setSearchColumn(col);
                     
                       if (col.toLowerCase().includes("fecha")) {
@@ -464,9 +478,6 @@ export default function GridBuilder({
                         (val) => typeof val === "string" && val.length <= 50
                       );
                     
-                      // No mostrar select si:
-                      // - No hay valores válidos
-                      // - Hay muy pocos valores válidos pero muchísimos vacíos
                       const emptyCount = rawValues.length - validValues.length;
                       const emptyRatio = emptyCount / rawValues.length;
                     
@@ -474,10 +485,11 @@ export default function GridBuilder({
                         uniqueValues.length > 0 &&
                         uniqueValues.length <= 20 &&
                         isShortStringList &&
-                        emptyRatio < 0.8; // Si más del 80% está vacío, no uses select
+                        emptyRatio < 0.8;
                     
                       setSearchMode(showAsSelect ? "select" : "typing");
                     }}
+                    
                     
                     className={`p-2 text-left border-b whitespace-normal break-words cursor-pointer select-none ${
                       searchColumn === col ? "text-green-700 underline" : "hover:text-green-500"
