@@ -1,7 +1,7 @@
-// NavLinksWithSubMenu.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import type { JSX } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
@@ -20,126 +20,183 @@ export interface MenuItem {
   subMenu?: MenuItem[];
 }
 
+interface NavLinksWithSubMenuProps {
+  search: string;
+}
+
 // Mapeo de string a componente de icono
-const iconMap: { [key: string]: React.ComponentType<React.SVGProps<SVGSVGElement>> } = {
+const iconMap: Record<string, React.ComponentType<React.SVGProps<SVGSVGElement>>> = {
   HomeIcon,
   PencilSquareIcon,
   Squares2X2Icon,
   DocumentDuplicateIcon,
 };
 
-// Tipo para cada entrada del stack del menú
-interface MenuStackEntry {
-  title: string; // Nombre del menú que nos llevó a este nivel (puede estar vacío en el nivel raíz)
-  items: MenuItem[];
+// Filtra recursivamente el menú según término de búsqueda
+// Si el padre coincide, conserva todos sus hijos; si sólo hijos coinciden, los filtra
+function filterMenu(items: MenuItem[], term: string): MenuItem[] {
+  const lower = term.toLowerCase();
+  return (
+    items
+      .map(item => {
+        const matchSelf = item.name.toLowerCase().includes(lower);
+        const filteredChildren = item.subMenu ? filterMenu(item.subMenu, term) : [];
+        if (matchSelf) {
+          return { ...item }; // conserva hijos completos
+        }
+        if (filteredChildren.length) {
+          return { ...item, subMenu: filteredChildren };
+        }
+        return null;
+      })
+      .filter(Boolean) as MenuItem[]
+  );
 }
 
-export default function NavLinksWithSubMenu() {
-  const [menuStack, setMenuStack] = useState<MenuStackEntry[]>([]);
+export default function NavLinksWithSubMenu({ search }: NavLinksWithSubMenuProps) {
+  const [menuData, setMenuData] = useState<MenuItem[]>([]);
+  const [menuStack, setMenuStack] = useState<MenuItem[][]>([]);
   const pathname = usePathname();
 
+  // Carga inicial del menú
   useEffect(() => {
-    // Cargar el JSON desde public/navbar/nav.json
     fetch("/navbar/nav.json")
-      .then((res) => res.json())
-      .then((data) => {
+      .then(res => res.json())
+      .then(data => {
         const topMenu: MenuItem[] = data.menu || [];
-        // Inicializa el stack con el menú principal
-        setMenuStack([{ title: "", items: topMenu }]);
+        setMenuData(topMenu);
+        setMenuStack([topMenu]);
       })
-      .catch((error) => {
-        console.error("Error al cargar el menú:", error);
-      });
+      .catch(console.error);
   }, []);
 
-  // Obtener el menú actual (último elemento del stack)
-  const currentMenu = menuStack[menuStack.length - 1];
+  // Al cambiar búsqueda, reinicia stack con menú filtrado o completo
+  useEffect(() => {
+    const top = search ? filterMenu(menuData, search) : menuData;
+    setMenuStack([top]);
+  }, [search, menuData]);
 
-  // Al hacer click en un ítem que tiene subMenú, se empuja al stack
+  const currentMenu = menuStack[menuStack.length - 1] || [];
+
   const handleMenuItemClick = (item: MenuItem) => {
-    if (item.subMenu) {
-      setMenuStack([...menuStack, { title: item.name, items: item.subMenu }]);
+    if (item.subMenu && item.subMenu.length > 0) {
+      setMenuStack(prev => [...prev, item.subMenu!]);
     }
   };
 
-  // Botón de regreso: remueve el último nivel del stack
   const handleBack = () => {
-    if (menuStack.length > 1) {
-      setMenuStack(menuStack.slice(0, menuStack.length - 1));
-    }
+    setMenuStack(prev => (prev.length > 1 ? prev.slice(0, -1) : prev));
   };
 
-  // Variantes para animar cada opción
-  const itemVariants = {
-    hidden: { opacity: 0, x: -20 },
-    visible: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: 20 },
-  };
+  // Renderizado recursivo para búsqueda
+  const renderFiltered = (items: MenuItem[], depth = 0): JSX.Element[] =>
+    items.map((item, idx) => {
+      const Icon = item.icon ? iconMap[item.icon] : null;
+      const isActive = pathname === item.href;
+      const hasChildren = item.subMenu && item.subMenu.length > 0;
+      const padding = { paddingLeft: `${depth * 16 + 16}px` };
+
+      return (
+        <div key={item.name + depth + idx} className="flex flex-col">
+          {hasChildren ? (
+            <button
+              type="button"
+              onClick={() => handleMenuItemClick(item)}
+              style={padding}
+              className="cursor-pointer flex items-center gap-2 p-2 text-sm font-medium rounded-md bg-gray-50 hover:bg-green-100 hover:text-green-600"
+            >
+              {Icon && <Icon className="w-5 h-5" />}
+              <span>{item.name}</span>
+            </button>
+          ) : item.href ? (
+            <Link
+              href={item.href}
+              style={padding}
+              className={`cursor-pointer flex items-center gap-2 p-2 text-sm font-medium rounded-md ${
+                isActive
+                  ? 'bg-green-100 text-green-600'
+                  : 'bg-gray-50 hover:bg-green-100 hover:text-green-600'
+              }`}
+            >
+              {Icon && <Icon className="w-5 h-5" />}
+              <span>{item.name}</span>
+            </Link>
+          ) : (
+            <div style={padding} className="flex items-center gap-2 p-2 text-sm font-medium bg-gray-50 rounded-md">
+              {Icon && <Icon className="w-5 h-5" />}
+              <span>{item.name}</span>
+            </div>
+          )}
+          {hasChildren && renderFiltered(item.subMenu!, depth + 1)}
+        </div>
+      );
+    });
 
   return (
     <div className="w-full">
-      {/* Si no estamos en el nivel raíz, mostramos el botón de regreso */}
+      {/* Botón Volver para submenús */}
       {menuStack.length > 1 && (
         <motion.button
+          type="button"
           onClick={handleBack}
-          className="mb-2 flex items-center gap-2 p-2 text-sm font-medium hover:bg-green-100 hover:text-green-600 rounded-md"
+          className="mb-2 cursor-pointer flex items-center gap-2 p-2 text-sm font-medium hover:bg-green-100 hover:text-green-600 rounded-md"
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -20 }}
         >
-          <ArrowLeftIcon className="w-5" />
-          <span>{currentMenu.title}</span>
+          <ArrowLeftIcon className="w-5 h-5" />
+          <span>Volver</span>
         </motion.button>
       )}
 
       <AnimatePresence mode="wait">
-        <motion.ul
-          key={menuStack.length} // Cambia la key al cambiar de nivel para animar la transición
+        <motion.div
+          key={search ? 'filter' : menuStack.length}
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           exit={{ opacity: 0, x: -20 }}
           transition={{ staggerChildren: 0.1 }}
-          className="flex flex-col gap-2"
         >
-          {currentMenu?.items.map((item, index) => {
-            const IconComponent = item.icon ? iconMap[item.icon] : null;
-            const isActive = pathname === item.href;
-            return (
-              <motion.li
-                key={index}
-                variants={itemVariants}
-                className="list-none"
-              >
-                {item.subMenu ? (
-                  <button
-                    onClick={() => handleMenuItemClick(item)}
-                    className="flex w-full items-center gap-2 rounded-md p-3 text-sm font-medium bg-gray-50 hover:bg-green-100 hover:text-green-600 text-left"
-                  >
-                    {IconComponent && <IconComponent className="w-6" />}
-                    <span>{item.name}</span>
-                  </button>
-                ) : item.href ? (
-                  <Link
-                    href={item.href}
-                    className={`flex w-full items-center gap-2 rounded-md p-3 text-sm font-medium text-left ${
-                      isActive
-                        ? "bg-green-100 text-green-600"
-                        : "bg-gray-50 hover:bg-green-100 hover:text-green-600"
-                    }`}
-                  >
-                    {IconComponent && <IconComponent className="w-6" />}
-                    <span>{item.name}</span>
-                  </Link>
-                ) : (
-                  <div className="flex items-center gap-2 rounded-md p-3 text-sm font-medium bg-gray-50">
-                    {IconComponent && <IconComponent className="w-6" />}
-                    <span>{item.name}</span>
+          {search
+            ? renderFiltered(currentMenu)
+            : currentMenu.map((item, idx) => {
+                const Icon = item.icon ? iconMap[item.icon] : null;
+                const isActive = pathname === item.href;
+                const hasChildren = item.subMenu && item.subMenu.length > 0;
+
+                return (
+                  <div key={item.name + idx} className="list-none">
+                    {hasChildren ? (
+                      <button
+                        type="button"
+                        onClick={() => handleMenuItemClick(item)}
+                        className="cursor-pointer flex w-full items-center gap-2 p-3 text-sm font-medium rounded-md bg-gray-50 hover:bg-green-100 hover:text-green-600"
+                      >
+                        {Icon && <Icon className="w-6 h-6" />}
+                        <span>{item.name}</span>
+                      </button>
+                    ) : item.href ? (
+                      <Link
+                        href={item.href}
+                        className={`cursor-pointer flex w-full items-center gap-2 p-3 text-sm font-medium text-left rounded-md ${
+                          isActive
+                            ? 'bg-green-100 text-green-600'
+                            : 'bg-gray-50 hover:bg-green-100 hover:text-green-600'
+                        }`}
+                      >
+                        {Icon && <Icon className="w-6 h-6" />}
+                        <span>{item.name}</span>
+                      </Link>
+                    ) : (
+                      <div className="flex items-center gap-2 p-3 text-sm font-medium bg-gray-50 rounded-md">
+                        {Icon && <Icon className="w-6 h-6" />}
+                        <span>{item.name}</span>
+                      </div>
+                    )}
                   </div>
-                )}
-              </motion.li>
-            );
-          })}
-        </motion.ul>
+                );
+              })}
+        </motion.div>
       </AnimatePresence>
     </div>
   );

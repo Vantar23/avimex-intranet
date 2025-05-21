@@ -138,54 +138,64 @@ const SearchBar: React.FC<SearchBarProps> = ({
         </div>
       )}
 
-      {/* DATE RANGE */}
-      {searchMode === "date-range" && (
-        <div
-          className="relative w-full max-w-4xl flex items-center gap-3"
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              onAddFilter();
-              onChange({ target: { value: "" } });
-            }
-          }}
-        >
-          <MagnifyingGlassIcon className="w-4 h-4 absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400" />
-          <input
-            type="date"
-            value={value.split("|")[0] || ""}
-            onChange={(e) => {
-              const end = value.split("|")[1] || "";
-              onChange({ target: { value: `${e.target.value}|${end}` } });
-            }}
-            className="w-full pl-12 pr-3 py-2.5 text-lg border border-gray-300 rounded-full shadow-md focus:outline-none focus:ring-2 focus:ring-green-500"
-          />
-          <input
-            type="date"
-            value={value.split("|")[1] || ""}
-            onChange={(e) => {
-              const start = value.split("|")[0] || "";
-              onChange({ target: { value: `${start}|${e.target.value}` } });
-            }}
-            className="w-full pl-6 pr-3 py-2.5 text-lg border border-gray-300 rounded-full shadow-md focus:outline-none focus:ring-2 focus:ring-green-500"
-          />
-          <ArrowDownCircleIcon
-            className="w-5 h-5 text-green-500 cursor-pointer hover:text-green-700"
-            onClick={() => {
-              onAddFilter();
-              onChange({ target: { value: "" } });
-            }}
-          />
-          {value && (
-            <button
-              type="button"
-              onClick={() => onChange({ target: { value: "" } })}
-              className="absolute right-4 top-1/2 transform -translate-y-1/2"
-            >
-              <XMarkIcon className="w-5 h-5 text-gray-500 hover:text-gray-700" />
-            </button>
-          )}
-        </div>
-      )}
+{/* DATE RANGE */}
+{searchMode === "date-range" && (
+  <div
+    className="relative w-full max-w-4xl flex items-center gap-3"
+    onKeyDown={(e) => {
+      if (e.key === "Enter") {
+        onAddFilter();
+        onChange({ target: { value: "" } });
+      }
+    }}
+  >
+    <MagnifyingGlassIcon
+      className="w-4 h-4 absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"
+    />
+
+    {/* fecha inicio */}
+    <input
+      type="date"
+      value={value.split("|")[0] || ""}
+      onChange={(e) => {
+        const end = value.split("|")[1] || "";
+        onChange({ target: { value: `${e.target.value}|${end}` } });
+      }}
+      className="w-full pl-12 pr-3 py-2.5 text-lg border border-gray-300 rounded-full shadow-md focus:outline-none focus:ring-2 focus:ring-green-500"
+    />
+
+    {/* fecha fin */}
+    <input
+      type="date"
+      value={value.split("|")[1] || ""}
+      onChange={(e) => {
+        const start = value.split("|")[0] || "";
+        onChange({ target: { value: `${start}|${e.target.value}` } });
+      }}
+      className="w-full pl-4 pr-3 py-2.5 text-lg border border-gray-300 rounded-full shadow-md focus:outline-none focus:ring-2 focus:ring-green-500"
+    />
+
+    {/* aplicar filtro */}
+    <ArrowDownCircleIcon
+      className="absolute right-10 top-1/2 transform -translate-y-1/2 w-5 h-5 text-green-500 cursor-pointer hover:text-green-700"
+      onClick={() => {
+        onAddFilter();
+        onChange({ target: { value: "" } });
+      }}
+    />
+
+    {/* limpiar rango */}
+    {value && (
+      <button
+        type="button"
+        onClick={() => onChange({ target: { value: "" } })}
+        className="absolute right-4 top-1/2 transform -translate-y-1/2"
+      >
+        <XMarkIcon className="w-5 h-5 text-gray-500 hover:text-gray-700" />
+      </button>
+    )}
+  </div>
+)}
 
       {/* CHIPS */}
       {filters.length > 0 && (

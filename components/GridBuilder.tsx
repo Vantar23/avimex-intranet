@@ -11,6 +11,7 @@ import {
   PencilIcon,
   TrashIcon,
   PlusIcon,
+  CheckIcon,
 } from "@heroicons/react/24/outline";
 import Cookies from "js-cookie";
 import { FaFileExcel } from "react-icons/fa";
@@ -119,7 +120,10 @@ export default function GridBuilder({
         const res = await axios.get("/api/proxyGridRoute", { params: { apiUrl } });
         console.log("Respuesta de API:", res.data);
 
-        const cols = res.data.Headers || res.data.columns;
+        // obtenemos todos los encabezados
+        const rawCols = res.data.Headers || res.data.columns;
+        // filtramos los que comiencen con '$'
+        const cols = rawCols.filter((col: string) => !col.startsWith("$"));
         const dta = res.data.Data || res.data.data;
 
         if (!res.data || !Array.isArray(cols) || !Array.isArray(dta)) {
@@ -218,7 +222,8 @@ export default function GridBuilder({
 
   useEffect(() => {
     let filtered = [...originalData];
-  
+
+    // 1) Búsqueda global (si no hay columna seleccionada)
     if (!searchColumn && globalSearch.trim() !== "") {
       const lower = globalSearch.toLowerCase();
       filtered = filtered.filter((row) =>
@@ -227,33 +232,60 @@ export default function GridBuilder({
         )
       );
     }
-  
+
+    // 2) Filtros acumulables, aquí incluimos date-range
     if (activeFilters.length > 0) {
       filtered = filtered.filter((row) =>
         activeFilters.every(({ column, value }) => {
+          // ——— si value tiene “|” y es date-range sobre la misma columna ———
+          if (
+            value.includes("|") &&
+            searchMode === "date-range" &&
+            column === searchColumn
+          ) {
+            const [start, end] = value.split("|");
+            const dt = parseCustomDate(String(row[column] ?? ""));
+            // dejamos solo la fecha (00:00:00)
+            const cellDate = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+            // bounds inclusive
+            const startDateObj = start
+              ? new Date(start)
+              : new Date(-8640000000000000);
+            const endDateObj = end
+              ? new Date(end)
+              : new Date(8640000000000000);
+
+            if (cellDate < startDateObj) return false;
+            if (cellDate > endDateObj)   return false;
+            return true;
+          }
+
+          // ——— resto (typing / select) ———
           const cell = String(row[column] ?? "").toLowerCase();
           return cell.includes(value.toLowerCase());
         })
       );
     }
-  
+
+    // 3) selectFilters extra, si tienes
     if (selectFilters) {
       filtered = filtered.filter((row) =>
-        selectFilters.every((field) => {
-          return !selectedFilters[field] || row[field] === selectedFilters[field];
-        })
+        selectFilters.every((field) =>
+          !selectedFilters[field] || row[field] === selectedFilters[field]
+        )
       );
     }
-  
+
     setData(filtered);
     setCurrentPage(1);
   }, [
     originalData,
-    searchColumn,
     globalSearch,
     activeFilters,
+    selectFilters,
     JSON.stringify(selectedFilters),
-    JSON.stringify(selectFilters),
+    searchColumn,
+    searchMode,
   ]);
   
   const totalPages = Math.ceil(data.length / rowsPerPage);
@@ -422,6 +454,18 @@ export default function GridBuilder({
                     <PlusIcon className="w-5 h-5" />
                   </button>
                 )}
+                {showReload && (
+                  <button
+                    onClick={() => {
+                      // aquí tu lógica de “enviar”
+                      console.log("Enviar registros con id_header:", Cookies.get("id_header"));
+                    }}
+                    className="bg-green p-1 rounded text-gray-700 hover:text-white hover:bg-green-500"
+                    title="Enviar"
+                  >
+                    <CheckIcon className="w-5 h-5" />
+                  </button>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -557,7 +601,7 @@ export default function GridBuilder({
                 ))}
               </tbody>
             </table>
-            <div className="flex justify-center mt-4 gap-2 text-sm flex-wrap">
+            <div className="flex items-center justify-end gap-2 mt-2">
               <button
                 className="px-2 py-1 bg-gray-200 rounded disabled:opacity-50"
                 onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
