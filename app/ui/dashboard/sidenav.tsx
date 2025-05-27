@@ -50,12 +50,14 @@ export default function SideNav() {
 
   return (
     <>
-      <button
-        className="fixed left-2 top-5 z-50 flex items-center justify-center rounded-lg bg-green-600 p-2 shadow-lg hover:bg-green-700"
-        onClick={() => setIsOpen(true)}
-      >
-        <Bars3Icon className="h-6 w-6 text-white" />
-      </button>
+      {!isOpen && (
+        <div
+          className="fixed left-0 top-0 z-40 h-full w-12 bg-green-600 flex flex-col items-center justify-center cursor-pointer"
+          onClick={() => setIsOpen(true)}
+        >
+          <Bars3Icon className="w-6 h-6 text-white" />
+        </div>
+      )}
       {isOpen && (
         <div
           className="fixed inset-0 z-40 bg-black bg-opacity-50"
