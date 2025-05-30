@@ -542,7 +542,9 @@ export default function GridBuilder({
                     {formatKeyLabel(col)}
                   </th>
                 ))}
-                  <th className="p-2 text-left border-b">Archivos</th>
+                  {originalData.some(item => item.NombreFact || item.NombreCoti) && (
+                    <th className="p-2 text-left border-b">Archivos</th>
+                  )}
                 </tr>
               </thead>
 
@@ -561,41 +563,42 @@ export default function GridBuilder({
                         {String(item[col] ?? "")}
                       </td>
                     ))}
-                    <td className="p-2 border-b whitespace-normal break-words">
-                      <div className="flex flex-wrap gap-2">
-                        {item.NombreFact && (
-                          <button
-                            className="px-2 py-1 bg-green-500 text-white rounded text-xs"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              const path = `/documents/${item.NombreFact}`;
-                              const link = document.createElement("a");
-                              link.href = path;
-                              link.download = item.NombreFact;
-                              link.click();
-                            }}
-                          >
-                            Factura
-                          </button>
-
-                        )}
-                        {item.NombreCoti && (
-                          <button
-                            className="px-2 py-1 bg-blue-500 text-white rounded text-xs"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              const path = `/documents/${item.NombreCoti}`;
-                              const link = document.createElement("a");
-                              link.href = path;
-                              link.download = item.NombreCoti;
-                              link.click();
-                            }}
-                          >
-                            Cotización
-                          </button>
-                        )}
-                      </div>
-                    </td>
+                    {originalData.some(item => item.NombreFact || item.NombreCoti) && (
+                      <td className="p-2 border-b whitespace-normal break-words">
+                        <div className="flex flex-wrap gap-2">
+                          {item.NombreFact && (
+                            <button
+                              className="px-2 py-1 bg-green-500 text-white rounded text-xs"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const path = `/documents/${item.NombreFact}`;
+                                const link = document.createElement("a");
+                                link.href = path;
+                                link.download = item.NombreFact;
+                                link.click();
+                              }}
+                            >
+                              Factura
+                            </button>
+                          )}
+                          {item.NombreCoti && (
+                            <button
+                              className="px-2 py-1 bg-blue-500 text-white rounded text-xs"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const path = `/documents/${item.NombreCoti}`;
+                                const link = document.createElement("a");
+                                link.href = path;
+                                link.download = item.NombreCoti;
+                                link.click();
+                              }}
+                            >
+                              Cotización
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>

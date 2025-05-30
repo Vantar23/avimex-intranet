@@ -3,8 +3,8 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import NavLinksWithSubMenu from "@/app/ui/dashboard/NavLinksWithSubMenu";
-import AcmeLogo from "@/app/ui/acme-logo";
+import NavLinksWithSubMenu from "@/components/navbar/NavLinksWithSubMenu";
+// import AcmeLogo from "@/components/navbar/AcmeLogo";
 import {
   PowerIcon,
   Bars3Icon,
@@ -83,8 +83,8 @@ export default function SideNav() {
             className="mb-2 flex h-20 items-end rounded-md bg-green-600 p-4 md:h-40"
             onClick={() => setIsOpen(false)}
           >
-            <div className="w-32 text-white md:w-40">
-              <AcmeLogo />
+            <div className="w-32 text-white md:w-40 text-lg font-bold">
+              AVIMEX
             </div>
           </Link>
 
@@ -104,10 +104,12 @@ export default function SideNav() {
 
           <div className="flex grow flex-col space-y-2" onClick={handleLinkClick}>
             <NavLinksWithSubMenu search={searchTerm} />
+          </div>
+          <div className="mt-auto px-1">
             <button
               type="button"
               onClick={handleLogout}
-              className="flex h-[48px] items-center justify-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-green-100 hover:text-green-600"
+              className="flex h-[48px] w-full items-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-green-100 hover:text-green-600"
             >
               <PowerIcon className="w-6 h-6" />
               <span>Cerrar Sesión</span>

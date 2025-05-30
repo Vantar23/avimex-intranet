@@ -2,8 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function middleware(req: NextRequest) {
   const token = req.cookies.get("session")?.value;
+  const envToken = process.env.MY_PRIVATE_TOKEN;
 
   console.log("🟢 Token detectado en middleware:", token || "Ninguno");
+
+  // Si no hay cookie 'session' pero existe el token de entorno, establecerlo como cookie
+  if (!token && envToken) {
+    console.log("🟡 No hay cookie, estableciendo token desde .env");
+    const res = NextResponse.next();
+    res.cookies.set("session", envToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+    });
+    return res;
+  }
 
   const protectedRoutes = ["/dashboard", "/perfil", "/configuracion"];
   const isProtectedRoute = protectedRoutes.some((route) => req.nextUrl.pathname.startsWith(route));
@@ -32,3 +46,4 @@ export async function middleware(req: NextRequest) {
 export const config = {
   matcher: ["/dashboard/:path*", "/perfil/:path*", "/configuracion/:path*", "/api/proxyJson/:path*"],
 };
+

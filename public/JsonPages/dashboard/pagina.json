@@ -15,7 +15,7 @@
         "selectFilters": ["proveedor", "NombreFact"],
         "modal": {
           "type": "dynamicForm",
-          "num": "22",
+          "num": "1",
           "subcarpeta": "1"
         }
       }
