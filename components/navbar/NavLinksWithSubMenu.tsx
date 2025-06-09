@@ -5,7 +5,7 @@ import type { JSX } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeftIcon } from "@heroicons/react/24/outline";
+import { ArrowLeftIcon, ChevronRightIcon } from "@heroicons/react/24/outline";
 import {
   HomeIcon,
   PencilSquareIcon,
@@ -35,11 +35,11 @@ const iconMap: Record<string, React.ComponentType<React.SVGProps<SVGSVGElement>>
 // Filtra recursivamente el menú según término de búsqueda
 // Si el padre coincide, conserva todos sus hijos; si sólo hijos coinciden, los filtra
 function filterMenu(items: MenuItem[], term: string): MenuItem[] {
-  const lower = term.toLowerCase();
+  const normalizedTerm = normalize(term);
   return (
     items
       .map(item => {
-        const matchSelf = item.name.toLowerCase().includes(lower);
+        const matchSelf = normalize(item.name).includes(normalizedTerm);
         const filteredChildren = item.subMenu ? filterMenu(item.subMenu, term) : [];
         if (matchSelf) {
           return { ...item }; // conserva hijos completos
@@ -107,6 +107,7 @@ export default function NavLinksWithSubMenu({ search }: NavLinksWithSubMenuProps
             >
               {Icon && <Icon className="w-5 h-5" />}
               <span>{item.name}</span>
+              <ChevronRightIcon className="w-4 h-4 ml-auto" />
             </button>
           ) : item.href ? (
             <Link
@@ -170,10 +171,11 @@ export default function NavLinksWithSubMenu({ search }: NavLinksWithSubMenuProps
                       <button
                         type="button"
                         onClick={() => handleMenuItemClick(item)}
-                        className="cursor-pointer flex w-full items-center gap-2 p-3 text-sm font-medium rounded-md bg-gray-50 hover:bg-green-100 hover:text-green-600"
+                        className="cursor-pointer flex w-full items-center gap-2 p-3 text-sm font-medium rounded-mdhover:bg-green-100 hover:text-green-600"
                       >
                         {Icon && <Icon className="w-6 h-6" />}
                         <span>{item.name}</span>
+                        <ChevronRightIcon className="w-4 h-4 ml-auto" />
                       </button>
                     ) : item.href ? (
                       <Link
@@ -181,14 +183,14 @@ export default function NavLinksWithSubMenu({ search }: NavLinksWithSubMenuProps
                         className={`cursor-pointer flex w-full items-center gap-2 p-3 text-sm font-medium text-left rounded-md ${
                           isActive
                             ? 'bg-green-100 text-green-600'
-                            : 'bg-gray-50 hover:bg-green-100 hover:text-green-600'
+                            : 'hover:bg-green-100 hover:text-green-600'
                         }`}
                       >
                         {Icon && <Icon className="w-6 h-6" />}
                         <span>{item.name}</span>
                       </Link>
                     ) : (
-                      <div className="flex items-center gap-2 p-3 text-sm font-medium bg-gray-50 rounded-md">
+                      <div className="flex items-center gap-2 p-3 text-sm font-medium rounded-md">
                         {Icon && <Icon className="w-6 h-6" />}
                         <span>{item.name}</span>
                       </div>
@@ -200,4 +202,11 @@ export default function NavLinksWithSubMenu({ search }: NavLinksWithSubMenuProps
       </AnimatePresence>
     </div>
   );
+}
+function normalize(term: string) {
+  return term
+    .normalize("NFD") // decompose accents
+    .replace(/[\u0300-\u036f]/g, "") // remove diacritics
+    .toLowerCase()
+    .trim();
 }

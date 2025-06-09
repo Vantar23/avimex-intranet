@@ -237,7 +237,7 @@
             "name": "Compras",
             "subMenu": [ {
                 "name": "Requisición",
-                "href": "/dashboard/pagina"
+                "href": "/planta/compras/requisicion"
                 }
             ]
             

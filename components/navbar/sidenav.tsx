@@ -71,20 +71,14 @@ export default function SideNav() {
         className="fixed left-0 top-0 z-50 h-full w-64 bg-white shadow-lg md:w-72"
       >
         <div className="flex h-full flex-col px-3 py-4 md:px-2">
-          <button
-            className="ml-auto mb-4 rounded-full p-2 hover:bg-gray-300"
-            onClick={() => setIsOpen(false)}
-          >
-            <XMarkIcon className="w-6 h-6 text-gray-600" />
-          </button>
 
           <Link
             href="/dashboard"
-            className="mb-2 flex h-20 items-end rounded-md bg-green-600 p-4 md:h-40"
+            className="mb-2 flex items-center justify-center rounded-md p-4"
             onClick={() => setIsOpen(false)}
           >
-            <div className="w-32 text-white md:w-40 text-lg font-bold">
-              AVIMEX
+            <div className="w-32 text-green-600 md:w-40 text-base font-bold text-center">
+              AVIMEX-INTRANET 2.0
             </div>
           </Link>
 
@@ -94,7 +88,6 @@ export default function SideNav() {
               <MagnifyingGlassIcon className="absolute left-3 top-1/2 w-5 h-5 text-gray-400 transform -translate-y-1/2" />
               <input
                 type="text"
-                placeholder="Buscar..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full py-2 pl-10 pr-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500"
@@ -109,7 +102,7 @@ export default function SideNav() {
             <button
               type="button"
               onClick={handleLogout}
-              className="flex h-[48px] w-full items-center gap-2 rounded-md bg-gray-50 p-3 text-sm font-medium hover:bg-green-100 hover:text-green-600"
+              className="flex h-[48px] w-full items-center gap-2 rounded-md p-3 text-base font-medium hover:bg-green-100 hover:text-green-600"
             >
               <PowerIcon className="w-6 h-6" />
               <span>Cerrar Sesión</span>
